@@ -1,19 +1,117 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Meu Site em Blockchain</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
-        .card { text-align: center; padding: 50px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        p { color: #666; }
-    </style>
+<meta charset="UTF-8">
+<title>Matriz</title>
+
+<style>
+body{
+  background:#050a14;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+svg{ width:420px; }
+
+circle{
+  fill:#00e5ff;
+  opacity:0;
+  transition: opacity .3s ease;
+}
+</style>
 </head>
+
 <body>
-    <div class="card">
-        <h1>Em Construção...</h1>
-        <p>Este site está sendo hospedado em uma rede descentralizada.</p>
-    </div>
+
+<svg viewBox="0 0 480 460">
+
+<!-- BASE -->
+<circle id="b1" cx="60" cy="360" r="6"/>
+<circle id="b2" cx="180" cy="360" r="6"/>
+<circle id="b3" cx="300" cy="360" r="6"/>
+<circle id="b4" cx="420" cy="360" r="6"/>
+
+<!-- MEIO -->
+<circle id="m1" cx="120" cy="200" r="7"/>
+<circle id="m2" cx="360" cy="200" r="7"/>
+
+<!-- TOPO -->
+<circle id="top" cx="240" cy="60" r="8"/>
+
+</svg>
+
+<script>
+
+const nodes = {
+  b1:document.getElementById('b1'),
+  b2:document.getElementById('b2'),
+  b3:document.getElementById('b3'),
+  b4:document.getElementById('b4'),
+  m1:document.getElementById('m1'),
+  m2:document.getElementById('m2'),
+  top:document.getElementById('top')
+};
+
+function show(id){ nodes[id].style.opacity=1 }
+function hide(id){ nodes[id].style.opacity=0 }
+
+function reset(){
+  Object.keys(nodes).forEach(hide);
+}
+
+function run(){
+
+  reset();
+
+  // 1 — entra
+  setTimeout(()=>{ show('b1'); },300);
+
+  // 2 — sobe (base → meio)
+  setTimeout(()=>{
+    hide('b1');
+    show('m1');
+  },900);
+
+  // 3 — gera 2
+  setTimeout(()=>{
+    show('b1');
+    show('b2');
+  },1500);
+
+  // 4 — sobe pro topo + base some (todos ascendendo)
+  setTimeout(()=>{
+    hide('m1');
+    hide('b1');
+    hide('b2');
+    show('top');
+  },2000);
+
+  // 5 — convidados aparecem no meio
+  setTimeout(()=>{
+    show('m1');
+    show('m2');
+  },2600);
+
+  // 6 — base completa (4)
+  setTimeout(()=>{
+    show('b1');
+    show('b2');
+    show('b3');
+    show('b4');
+  },3200);
+
+  // 7 — master sai (reinicia ciclo)
+  setTimeout(()=>{
+    hide('top');
+  },4000);
+
+}
+
+run();
+setInterval(run,5000);
+
+</script>
+
 </body>
 </html>
