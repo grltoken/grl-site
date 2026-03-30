@@ -2,243 +2,214 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Matriz Mastermind</title>
+<title>Matriz</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-
 body{
-  font-family:Arial, sans-serif;
   background:#ffffff;
-  text-align:center;
-  padding:20px;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-/* TOPBAR */
-#topbar{
+/* BOTÃO LOGIN */
+#loginBtn{
   position:fixed;
   top:10px;
-  right:10px;
+  left:10px;
 }
 
-#topbar button{
-  padding:8px 12px;
+#loginBtn button{
+  padding:6px 10px;
   background:#003366;
   color:#fff;
   border:none;
+  font-family: Consolas, 'Courier New', monospace;
   cursor:pointer;
 }
 
-/* AUTH */
-#auth{
+/* MODAL */
+#modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.7);
   display:none;
-  margin-top:80px;
+  justify-content:center;
+  align-items:center;
 }
 
-input{
-  padding:10px;
-  margin:5px;
-  width:220px;
+#modalBox{
+  background:#fff;
+  padding:20px;
+  text-align:center;
 }
 
-/* CONVITES */
-.conviteBox{
+/* TÍTULO */
+h1{
+  color:#003366;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size:36px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  margin-top:30px;
+  margin-bottom:80px;
+}
+
+/* MATRIZ */
+svg{
+  width:420px;
+}
+
+circle{
+  fill:#003366;
+  opacity:0;
+  transform:scale(0.6);
+  transition: all .4s ease;
+}
+
+circle.on{
+  opacity:1;
+  transform:scale(1);
+}
+
+/* PAINEL */
+#painel{
+  margin-top:20px;
+}
+
+.convite{
   border:1px solid #003366;
-  padding:10px;
-  margin:10px auto;
-  max-width:260px;
-  display:flex;
-  justify-content:space-between;
+  padding:8px;
+  margin:5px;
 }
-
-/* APP */
-#app{
-  margin-top:80px;
-}
-
-/* BOTÕES */
-button{
-  padding:10px;
-  background:#003366;
-  color:white;
-  border:none;
-  margin-top:10px;
-  cursor:pointer;
-}
-
 </style>
 </head>
 
 <body>
 
-<!-- TOPO -->
-<div id="topbar">
-  <button onclick="mostrarLogin()">Entrar</button>
+<div id="loginBtn">
+  <button onclick="abrirLogin()">Login</button>
 </div>
 
-<h2>Matriz Mastermind</h2>
+<h1 id="title"></h1>
 
-<!-- LOGIN -->
-<div id="auth">
+<svg viewBox="0 0 480 460">
+<circle id="b1" cx="60" cy="360" r="6"/>
+<circle id="b2" cx="180" cy="360" r="6"/>
+<circle id="b3" cx="300" cy="360" r="6"/>
+<circle id="b4" cx="420" cy="360" r="6"/>
+<circle id="m1" cx="120" cy="200" r="7"/>
+<circle id="m2" cx="360" cy="200" r="7"/>
+<circle id="top" cx="240" cy="60" r="8"/>
+</svg>
 
-  <h3>Criar acesso</h3>
-  <input id="email" placeholder="Email"><br>
-  <input id="senha" type="password" placeholder="Senha"><br>
-  <button onclick="cadastrar()">Cadastrar</button>
+<div id="painel"></div>
 
-  <hr style="margin:20px;">
-
-  <h3>Entrar</h3>
-  <input id="loginEmail" placeholder="Email"><br>
-  <input id="loginSenha" type="password" placeholder="Senha"><br>
-  <button onclick="login()">Entrar</button>
-
-  <p id="msg"></p>
-
+<!-- MODAL -->
+<div id="modal">
+  <div id="modalBox">
+    <h3>Acesso restrito</h3>
+    <p>Ative seu acesso para entrar na matriz</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=pagamento">
+    <p style="font-size:12px;">Simulação de pagamento</p>
+    <button onclick="liberar()">Já paguei</button>
+  </div>
 </div>
-
-<!-- SISTEMA -->
-<div id="app"></div>
 
 <script>
 
-// GERAR CONVITE
-function gerarConvite(){
-  const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code="MM-";
-  for(let i=0;i<6;i++){
-    code+=chars[Math.floor(Math.random()*chars.length)];
-  }
-  return code;
+// ===== MATRIZ =====
+const nodes = {
+  b1:document.getElementById('b1'),
+  b2:document.getElementById('b2'),
+  b3:document.getElementById('b3'),
+  b4:document.getElementById('b4'),
+  m1:document.getElementById('m1'),
+  m2:document.getElementById('m2'),
+  top:document.getElementById('top')
+};
+
+const title = document.getElementById('title');
+const text = "MASTERMINDs";
+
+function show(id){ nodes[id].classList.add('on'); }
+function hide(id){ nodes[id].classList.remove('on'); }
+
+function reset(){
+  Object.keys(nodes).forEach(hide);
 }
 
-// MOSTRAR LOGIN
-function mostrarLogin(){
-  document.getElementById("auth").style.display="block";
+function typeText(){
+  title.innerHTML="";
+  let i=0;
+
+  const interval=setInterval(()=>{
+    title.innerHTML=text.substring(0,i+1)+"|";
+    i++;
+    if(i>=text.length) clearInterval(interval);
+  },80);
 }
 
-// CADASTRAR
-function cadastrar(){
+function run(){
+  reset();
+  title.innerHTML="";
 
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
+  setTimeout(()=>{show('b1')},400);
+  setTimeout(()=>{hide('b1');show('m1')},1200);
+  setTimeout(()=>{show('b1');show('b2')},2000);
+  setTimeout(()=>{hide('m1');hide('b1');hide('b2');show('top')},2800);
+  setTimeout(()=>{show('m1');show('m2')},3600);
+  setTimeout(()=>{show('b1');show('b2');show('b3');show('b4')},4500);
+  setTimeout(()=>{reset()},5800);
+  setTimeout(()=>{typeText()},6500);
+}
 
-  if(!email || !senha){
-    alert("Preencha tudo");
-    return;
+run();
+setInterval(run,9000);
+
+// ===== SISTEMA =====
+
+function abrirLogin(){
+  const user = localStorage.getItem("user");
+
+  if(user){
+    abrirPainel();
+  }else{
+    document.getElementById("modal").style.display="flex";
   }
+}
+
+function liberar(){
 
   const user = {
-    email,
-    senha,
-    posicao:"Base",
-    convites:[gerarConvite(), gerarConvite()]
+    convites:[gerar(),gerar()]
   };
 
-  localStorage.setItem("user_"+email, JSON.stringify(user));
+  localStorage.setItem("user",JSON.stringify(user));
 
-  document.getElementById("msg").innerText = "Cadastro criado!";
+  document.getElementById("modal").style.display="none";
+
+  abrirPainel();
 }
 
-// LOGIN
-function login(){
-
-  const email = document.getElementById("loginEmail").value;
-  const senha = document.getElementById("loginSenha").value;
-
-  const user = JSON.parse(localStorage.getItem("user_"+email));
-
-  if(user && user.senha === senha){
-
-    localStorage.setItem("logado", email);
-    abrirSistema();
-    atualizarTopbar();
-
-  } else {
-    document.getElementById("msg").innerText = "Login inválido";
-  }
-
+function gerar(){
+  return "MM-"+Math.random().toString(36).substring(2,8).toUpperCase();
 }
 
-// ABRIR SISTEMA
-function abrirSistema(){
+function abrirPainel(){
 
-  const email = localStorage.getItem("logado");
-  const user = JSON.parse(localStorage.getItem("user_"+email));
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  document.getElementById("auth").style.display="none";
-
-  document.getElementById("app").innerHTML = `
-    <h3>Bem-vindo</h3>
-    <p>Nível: <b id="posicao">${user.posicao}</b></p>
-
-    <h3>Seus convites</h3>
-
-    <div class="conviteBox">
-      <span id="c1">${user.convites[0]}</span>
-      <button onclick="copiar('c1')">Copiar</button>
-    </div>
-
-    <div class="conviteBox">
-      <span id="c2">${user.convites[1]}</span>
-      <button onclick="copiar('c2')">Copiar</button>
-    </div>
-
-    <p id="msg2"></p>
-
-    <button onclick="subir()">Simular subida</button>
-    <button onclick="logout()">Sair</button>
+  document.getElementById("painel").innerHTML=`
+    <h3>Minha Matriz</h3>
+    <p>Convide 2 pessoas:</p>
+    <div class="convite">${user.convites[0]}</div>
+    <div class="convite">${user.convites[1]}</div>
   `;
-
-}
-
-// COPIAR
-function copiar(id){
-  const texto = document.getElementById(id).innerText;
-  navigator.clipboard.writeText(texto);
-  document.getElementById("msg2").innerText="Convite copiado!";
-}
-
-// SIMULAR SUBIDA
-function subir(){
-
-  const email = localStorage.getItem("logado");
-  let user = JSON.parse(localStorage.getItem("user_"+email));
-
-  if(user.posicao === "Base"){
-    user.posicao = "Nível 2";
-  } else {
-    user.posicao = "👑 MindMaster";
-  }
-
-  localStorage.setItem("user_"+email, JSON.stringify(user));
-  abrirSistema();
-}
-
-// LOGOUT
-function logout(){
-  localStorage.removeItem("logado");
-  location.reload();
-}
-
-// ATUALIZAR TOPO
-function atualizarTopbar(){
-  const logado = localStorage.getItem("logado");
-
-  if(logado){
-    document.getElementById("topbar").innerHTML = `
-      <button onclick="logout()">Sair</button>
-    `;
-  }
-}
-
-// AUTO LOGIN
-window.onload = ()=>{
-  if(localStorage.getItem("logado")){
-    abrirSistema();
-  }
-  atualizarTopbar();
 }
 
 </script>
