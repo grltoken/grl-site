@@ -7,27 +7,37 @@
 <style>
 body{
   background:#ffffff;
+  margin:0;
   display:flex;
   flex-direction:column;
-  justify-content:center;
   align-items:center;
-  height:100vh;
-  margin:0;
 }
 
-/* TÍTULO */
+/* TÍTULO ESTILO TERMINAL */
 h1{
   color:#003366;
-  font-family:Verdana, sans-serif;
-  font-size:34px;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size:36px;
   letter-spacing:4px;
   text-transform:uppercase;
 
-  margin-top:-50px;   /* sobe o título */
-  margin-bottom:50px; /* desce a matriz */
+  margin-top:30px;
+  margin-bottom:80px;
 }
 
-/* SVG */
+/* CURSOR */
+.cursor{
+  display:inline-block;
+  width:10px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink{
+  0%,50%,100%{opacity:1;}
+  25%,75%{opacity:0;}
+}
+
+/* MATRIZ */
 svg{
   width:420px;
 }
@@ -37,10 +47,7 @@ circle{
   fill:#003366;
   opacity:0;
   transform:scale(0.6);
-  transform-origin:center;
-  transition:
-    opacity .5s ease,
-    transform .6s cubic-bezier(.2,.8,.2,1);
+  transition: all .4s ease;
 }
 
 circle.on{
@@ -52,21 +59,18 @@ circle.on{
 
 <body>
 
-<h1>Masterminds</h1>
+<h1 id="title"></h1>
 
 <svg viewBox="0 0 480 460">
 
-<!-- BASE -->
 <circle id="b1" cx="60" cy="360" r="6"/>
 <circle id="b2" cx="180" cy="360" r="6"/>
 <circle id="b3" cx="300" cy="360" r="6"/>
 <circle id="b4" cx="420" cy="360" r="6"/>
 
-<!-- MEIO -->
 <circle id="m1" cx="120" cy="200" r="7"/>
 <circle id="m2" cx="360" cy="200" r="7"/>
 
-<!-- TOPO -->
 <circle id="top" cx="240" cy="60" r="8"/>
 
 </svg>
@@ -83,6 +87,9 @@ const nodes = {
   top:document.getElementById('top')
 };
 
+const title = document.getElementById('title');
+const text = "MASTERMINDs".toUpperCase();
+
 function show(id){ nodes[id].classList.add('on'); }
 function hide(id){ nodes[id].classList.remove('on'); }
 
@@ -90,9 +97,27 @@ function reset(){
   Object.keys(nodes).forEach(hide);
 }
 
+function typeText(){
+  title.innerHTML = "";
+  let i = 0;
+
+  const interval = setInterval(()=>{
+    title.innerHTML = text.substring(0,i+1) + '<span class="cursor">|</span>';
+    i++;
+
+    if(i >= text.length){
+      clearInterval(interval);
+
+      // mantém cursor piscando no final
+      title.innerHTML = text + '<span class="cursor">|</span>';
+    }
+  }, 80);
+}
+
 function run(){
 
   reset();
+  title.innerHTML = "";
 
   // 1 entra
   setTimeout(()=>{ show('b1'); },400);
@@ -131,15 +156,20 @@ function run(){
     show('b4');
   },4500);
 
-  // 7 final
+  // 7 some tudo
   setTimeout(()=>{
-    hide('top');
+    reset();
   },5800);
+
+  // 8 texto digitando
+  setTimeout(()=>{
+    typeText();
+  },6500);
 
 }
 
 run();
-setInterval(run,8200);
+setInterval(run,9000);
 
 </script>
 
