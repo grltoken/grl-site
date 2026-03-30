@@ -5,8 +5,6 @@
 <title>Matriz</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
-
 body{
   background:#ffffff;
   display:flex;
@@ -19,12 +17,14 @@ body{
 
 /* TÍTULO */
 h1{
-  color:#001f3f;
-  font-family:'Orbitron', sans-serif;
+  color:#003366;
+  font-family:Verdana, sans-serif;
   font-size:34px;
   letter-spacing:4px;
-  margin-bottom:25px;
   text-transform:uppercase;
+
+  margin-top:-50px;   /* sobe o título */
+  margin-bottom:50px; /* desce a matriz */
 }
 
 /* SVG */
@@ -34,7 +34,7 @@ svg{
 
 /* BOLINHAS */
 circle{
-  fill:#001f3f;
+  fill:#003366;
   opacity:0;
   transform:scale(0.6);
   transform-origin:center;
@@ -131,7 +131,7 @@ function run(){
     show('b4');
   },4500);
 
-  // 7 final (some)
+  // 7 final
   setTimeout(()=>{
     hide('top');
   },5800);
