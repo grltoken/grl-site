@@ -2,134 +2,94 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Matriz</title>
+<title>Dashboard</title>
 
 <style>
 body{
   margin:0;
-  font-family: Consolas, monospace;
-  text-align:center;
+  font-family: Arial, sans-serif;
   background:#ffffff;
+  text-align:center;
 }
 
-/* LOGIN */
-#loginBtn{
-  position:fixed;
-  top:10px;
-  left:10px;
-}
-
-#loginBtn button{
-  padding:6px 10px;
-  background:#003366;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-
-/* DASHBOARD */
-#dashboard{
-  display:none;
-}
-
+/* TOPO */
 #topbar{
   background:#003366;
   color:#fff;
-  padding:10px;
+  padding:15px;
+  font-size:20px;
 }
 
 /* MATRIZ */
 svg{
-  width:420px;
+  width:90%;
+  max-width:400px;
   margin-top:30px;
 }
 
 circle{
   fill:#003366;
-  opacity:0;
-  transform:scale(0.6);
-  transition:.4s;
+  opacity:0.2;
 }
 
-circle.on{
+.on{
   opacity:1;
-  transform:scale(1);
 }
 
-/* BOTÃO */
+/* BOTÃO GRANDE */
 #btn{
-  margin-top:20px;
-  padding:10px;
+  margin-top:30px;
+  padding:18px;
+  width:80%;
+  max-width:300px;
+  font-size:18px;
   background:#003366;
   color:#fff;
   border:none;
-  cursor:pointer;
+  border-radius:8px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- HOME -->
-<div id="home">
+<div id="topbar">Área do usuário</div>
 
-  <div id="loginBtn">
-    <button onclick="login()">Login</button>
-  </div>
+<svg viewBox="0 0 480 460">
 
-  <h1>MASTERMINDs</h1>
+<circle id="b1" cx="60" cy="360" r="8"/>
+<circle id="b2" cx="180" cy="360" r="8"/>
+<circle id="b3" cx="300" cy="360" r="8"/>
+<circle id="b4" cx="420" cy="360" r="8"/>
 
-</div>
+<circle id="m1" cx="120" cy="200" r="10"/>
+<circle id="m2" cx="360" cy="200" r="10"/>
 
-<!-- DASHBOARD -->
-<div id="dashboard">
+<circle id="top" cx="240" cy="60" r="12"/>
 
-  <div id="topbar">Área do usuário</div>
+</svg>
 
-  <svg viewBox="0 0 480 460">
-
-    <!-- BASE -->
-    <circle id="b1" cx="60" cy="360" r="6"/>
-    <circle id="b2" cx="180" cy="360" r="6"/>
-    <circle id="b3" cx="300" cy="360" r="6"/>
-    <circle id="b4" cx="420" cy="360" r="6"/>
-
-    <!-- MEIO -->
-    <circle id="m1" cx="120" cy="200" r="7"/>
-    <circle id="m2" cx="360" cy="200" r="7"/>
-
-    <!-- TOPO -->
-    <circle id="top" cx="240" cy="60" r="8"/>
-
-  </svg>
-
-  <button id="btn">Nova entrada</button>
-
-</div>
+<button id="btn">Nova entrada</button>
 
 <script>
 
 let step = 0;
 
-const nodes = {};
+const nodes = {
+  b1:document.getElementById("b1"),
+  b2:document.getElementById("b2"),
+  b3:document.getElementById("b3"),
+  b4:document.getElementById("b4"),
+  m1:document.getElementById("m1"),
+  m2:document.getElementById("m2"),
+  top:document.getElementById("top")
+};
 
-function login(){
-  document.getElementById("home").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-
-  nodes.b1 = document.getElementById("b1");
-  nodes.b2 = document.getElementById("b2");
-  nodes.b3 = document.getElementById("b3");
-  nodes.b4 = document.getElementById("b4");
-  nodes.m1 = document.getElementById("m1");
-  nodes.m2 = document.getElementById("m2");
-  nodes.top = document.getElementById("top");
-
-  document.getElementById("btn").onclick = nextStep;
+function clearAll(){
+  Object.values(nodes).forEach(n => n.classList.remove("on"));
 }
 
-// MESMA LÓGICA DA SUA ANIMAÇÃO
-function nextStep(){
+document.getElementById("btn").onclick = function(){
 
   step++;
 
@@ -138,40 +98,35 @@ function nextStep(){
   }
 
   else if(step === 2){
-    nodes.b1.classList.remove("on");
-    nodes.m1.classList.add("on");
+    nodes.b2.classList.add("on");
   }
 
   else if(step === 3){
-    nodes.b1.classList.add("on");
-    nodes.b2.classList.add("on");
+    nodes.m1.classList.add("on");
   }
 
   else if(step === 4){
-    nodes.m1.classList.remove("on");
-    nodes.b1.classList.remove("on");
-    nodes.b2.classList.remove("on");
-    nodes.top.classList.add("on");
+    nodes.b3.classList.add("on");
   }
 
   else if(step === 5){
-    nodes.m1.classList.add("on");
-    nodes.m2.classList.add("on");
-  }
-
-  else if(step === 6){
-    nodes.b1.classList.add("on");
-    nodes.b2.classList.add("on");
-    nodes.b3.classList.add("on");
     nodes.b4.classList.add("on");
   }
 
+  else if(step === 6){
+    nodes.m2.classList.add("on");
+  }
+
   else if(step === 7){
-    // reset igual animação
-    Object.values(nodes).forEach(n => n.classList.remove("on"));
+    nodes.top.classList.add("on");
+  }
+
+  else{
+    clearAll();
     step = 0;
   }
-}
+
+};
 
 </script>
 
