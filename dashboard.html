@@ -8,38 +8,44 @@
 <style>
 body{
   margin:0;
-  font-family: Arial;
+  font-family: Consolas, monospace;
   background:#fff;
   display:flex;
   flex-direction:column;
   align-items:center;
 }
 
+/* TOPO */
 #topbar{
   width:100%;
-  background:#003366;
-  color:#fff;
+  text-align:center;
   padding:10px;
   font-size:14px;
-  text-align:center;
+  border-bottom:1px solid #003366;
 }
 
+/* MATRIZ */
 svg{
-  width:95%;
-  max-width:500px;
-  margin-top:20px;
+  width:90%;
+  max-width:420px;
+  margin-top:30px;
 }
 
-.node{
+circle{
   fill:#003366;
   opacity:0.2;
   transition:0.4s;
 }
 
-.node.on{
+circle.on{
   opacity:1;
 }
 
+#top{
+  fill:gold;
+}
+
+/* LINHAS */
 .link{
   stroke:gold;
   stroke-width:2;
@@ -50,6 +56,20 @@ svg{
   opacity:1;
 }
 
+/* CONVITES */
+#convites{
+  margin-top:20px;
+  text-align:center;
+}
+
+.convite{
+  border:1px solid #003366;
+  padding:8px;
+  margin:5px;
+  cursor:pointer;
+}
+
+/* BOTÃO + */
 #btn{
   position:fixed;
   bottom:20px;
@@ -69,7 +89,33 @@ svg{
 
 <div id="topbar">Área do usuário</div>
 
-<svg id="matrix" viewBox="0 0 500 500"></svg>
+<svg viewBox="0 0 480 460">
+
+<!-- LINHAS -->
+<line x1="240" y1="60" x2="120" y2="200" class="link"/>
+<line x1="240" y1="60" x2="360" y2="200" class="link"/>
+
+<line x1="120" y1="200" x2="60" y2="360" class="link"/>
+<line x1="120" y1="200" x2="180" y2="360" class="link"/>
+
+<line x1="360" y1="200" x2="300" y2="360" class="link"/>
+<line x1="360" y1="200" x2="420" y2="360" class="link"/>
+
+<!-- NÓS -->
+<circle id="m1a" cx="60" cy="360" r="6"/>
+<circle id="m1b" cx="180" cy="360" r="6"/>
+
+<circle id="m2a" cx="300" cy="360" r="6"/>
+<circle id="m2b" cx="420" cy="360" r="6"/>
+
+<circle id="m1" cx="120" cy="200" r="7"/>
+<circle id="m2" cx="360" cy="200" r="7"/>
+
+<circle id="top" cx="240" cy="60" r="9"/>
+
+</svg>
+
+<div id="convites"></div>
 
 <button id="btn">+</button>
 
@@ -95,7 +141,7 @@ const db = getFirestore(app);
 let convites = [];
 let userId = null;
 
-// 🔐 GARANTE LOGIN
+// 🔐 VERIFICA LOGIN
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
@@ -110,88 +156,77 @@ onAuthStateChanged(auth, async (user) => {
 
   if (snap.exists()) {
     convites = snap.data().convites || [];
-    desenhar();
+    atualizarTela();
   }
 
 });
 
-// ===== ÁRVORE =====
+// ===== ATUALIZA TUDO =====
 
-function gerarArvore(nivel){
-
-  const nodes = [];
-
-  function criar(id, depth, index){
-    nodes.push({id, depth, index});
-
-    if(depth < nivel){
-      criar(id+"a", depth+1, index*2);
-      criar(id+"b", depth+1, index*2+1);
-    }
-  }
-
-  criar("m", 0, 0);
-
-  return nodes;
+function atualizarTela(){
+  ligarMatriz(convites);
+  mostrarConvites(convites);
 }
 
-// ===== DESENHO =====
+// ===== MATRIZ =====
 
-function desenhar(){
+function ligarMatriz(convites){
 
-  const svg = document.getElementById("matrix");
-  svg.innerHTML = "";
+  document.querySelectorAll("circle").forEach(c => c.classList.remove("on"));
+  document.querySelectorAll(".link").forEach(l => l.classList.remove("on"));
 
-  const nodes = gerarArvore(3);
+  if(convites[0]) document.getElementById("m1a").classList.add("on");
+  if(convites[1]) document.getElementById("m1b").classList.add("on");
+  if(convites[2]) document.getElementById("m2a").classList.add("on");
+  if(convites[3]) document.getElementById("m2b").classList.add("on");
 
-  const largura = 500;
+  if(convites[0] && convites[1]){
+    document.getElementById("m1").classList.add("on");
 
-  nodes.forEach(n => {
+    document.querySelectorAll('.link')[2].classList.add("on");
+    document.querySelectorAll('.link')[3].classList.add("on");
+  }
 
-    if(n.id !== "m"){
-      const pai = n.id.slice(0, -1);
-      const parent = nodes.find(x => x.id === pai);
+  if(convites[2] && convites[3]){
+    document.getElementById("m2").classList.add("on");
 
-      if(parent){
+    document.querySelectorAll('.link')[4].classList.add("on");
+    document.querySelectorAll('.link')[5].classList.add("on");
+  }
 
-        const x1 = (parent.index + 1) * (largura / (Math.pow(2, parent.depth+1)));
-        const y1 = (parent.depth + 1) * 100;
+  if(
+    convites[0] && convites[1] &&
+    convites[2] && convites[3]
+  ){
+    document.getElementById("top").classList.add("on");
 
-        const x2 = (n.index + 1) * (largura / (Math.pow(2, n.depth+1)));
-        const y2 = (n.depth + 1) * 100;
+    document.querySelectorAll('.link')[0].classList.add("on");
+    document.querySelectorAll('.link')[1].classList.add("on");
+  }
 
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+}
 
-        line.setAttribute("x1", x1);
-        line.setAttribute("y1", y1);
-        line.setAttribute("x2", x2);
-        line.setAttribute("y2", y2);
-        line.setAttribute("class", "link");
+// ===== CONVITES =====
 
-        svg.appendChild(line);
-      }
-    }
+function mostrarConvites(lista){
 
-  });
+  const div = document.getElementById("convites");
 
-  nodes.forEach((n, i) => {
+  div.innerHTML = "<h3>Seus convites</h3>";
 
-    const x = (n.index + 1) * (largura / (Math.pow(2, n.depth+1)));
-    const y = (n.depth + 1) * 100;
+  lista.forEach(c => {
 
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    const el = document.createElement("div");
+    el.className = "convite";
+    el.innerText = c;
 
-    circle.setAttribute("cx", x);
-    circle.setAttribute("cy", y);
-    circle.setAttribute("r", 6);
-    circle.setAttribute("class", "node");
+    el.onclick = () => {
+      navigator.clipboard.writeText(c);
+      el.innerText = "Copiado!";
+      setTimeout(()=> el.innerText = c, 1000);
+    };
 
-    if(convites[i]){
-      circle.classList.add("on");
-    }
-
-    svg.appendChild(circle);
-
+    div.appendChild(el);
   });
 
 }
@@ -200,22 +235,21 @@ function desenhar(){
 
 document.getElementById("btn").onclick = async function(){
 
-  convites.push("novo");
+  const novo = "MM-" + Math.random().toString(36).substring(2,8).toUpperCase();
 
-  // 🔥 salva no Firebase
+  convites.push(novo);
+
   const ref = doc(db, "usuarios", userId);
 
   await updateDoc(ref, {
     convites: convites
   });
 
-  desenhar();
+  atualizarTela();
 
 };
 
 </script>
-
-
 
 </body>
 </html>
