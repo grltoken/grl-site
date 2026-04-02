@@ -100,7 +100,7 @@ circle.on{
 <body>
 
 <div id="loginBtn">
-  <button onclick="window.location.href='dashboard.html'">Login</button>
+  <button onclick="login()">Login</button>
 </div>
 
 <h1 id="title"></h1>
@@ -221,6 +221,48 @@ function abrirPainel(){
 }
 
 </script>
+<script type="module">
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
+  authDomain: "grlnetwork.firebaseapp.com",
+  projectId: "grlnetwork",
+  storageBucket: "grlnetwork.firebasestorage.app",
+  messagingSenderId: "887517900417",
+  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.login = async function(){
+
+  const email = prompt("Email:");
+  const senha = prompt("Senha:");
+
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+  } catch {
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+    const user = userCredential.user;
+
+    await setDoc(doc(db, "usuarios", user.uid), {
+      convites: [
+        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase(),
+        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase()
+      ]
+    });
+  }
+
+  window.location.href = "dashboard.html";
+};
+
+</script>
 </body>
 </html>
