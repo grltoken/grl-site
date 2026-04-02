@@ -8,154 +8,177 @@
 <style>
 body{
   margin:0;
-  font-family: Arial, sans-serif;
-  background:#f5f7fa;
+  font-family: Arial;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-/* TOPO */
 #topbar{
-  position:sticky;
-  top:0;
+  width:100%;
+  background:#003366;
+  color:#fff;
   padding:10px;
   font-size:14px;
-  color:#003366;
-  background:#ffffff;
-  border-bottom:1px solid #eee;
   text-align:center;
 }
 
-/* MATRIZ */
 svg{
-  width:90%;
-  max-width:400px;
-  margin:40px auto;
-  display:block;
+  width:95%;
+  max-width:500px;
+  margin-top:20px;
 }
 
-/* PONTOS */
-circle{
+.node{
   fill:#003366;
   opacity:0.2;
-  transition:0.3s;
+  transition:0.4s;
 }
 
-.on{
+.node.on{
   opacity:1;
 }
 
-/* BOTÃO */
+.link{
+  stroke:gold;
+  stroke-width:2;
+  opacity:0.2;
+}
+
+.link.on{
+  opacity:1;
+}
+
 #btn{
   position:fixed;
   bottom:20px;
   right:20px;
-  width:55px;
-  height:55px;
-  border-radius:50%;
-  border:none;
   background:#003366;
   color:#fff;
-  font-size:26px;
-  cursor:pointer;
-  box-shadow:0 4px 12px rgba(0,0,0,0.2);
-}
-
-#btn:hover{
-  transform:scale(1.05);
+  border:none;
+  border-radius:50%;
+  width:60px;
+  height:60px;
+  font-size:28px;
 }
 </style>
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-  authDomain: "grlnetwork.firebaseapp.com",
-  projectId: "grlnetwork",
-  storageBucket: "grlnetwork.firebasestorage.app",
-  messagingSenderId: "887517900417",
-  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// 🔥 FUNÇÃO LOGIN
-window.login = async function(){
-
-  const email = prompt("Email:");
-  const senha = prompt("Senha:");
-
-  try {
-    await signInWithEmailAndPassword(auth, email, senha);
-  } catch {
-
-    const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-    const user = userCredential.user;
-
-    await setDoc(doc(db, "usuarios", user.uid), {
-      convites: [
-        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase(),
-        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase()
-      ]
-    });
-  }
-
-  window.location.href = "dashboard.html";
-};
-
-</script>
-  
-</script>
 </head>
 
 <body>
 
 <div id="topbar">Área do usuário</div>
 
-<svg viewBox="0 0 480 460">
-
-  <circle id="b1" cx="60" cy="360" r="8"></circle>
-  <circle id="b2" cx="180" cy="360" r="8"></circle>
-  <circle id="b3" cx="300" cy="360" r="8"></circle>
-  <circle id="b4" cx="420" cy="360" r="8"></circle>
-
-  <circle id="m1" cx="120" cy="200" r="10"></circle>
-  <circle id="m2" cx="360" cy="200" r="10"></circle>
-
-  <circle id="top" cx="240" cy="60" r="12"></circle>
-
-</svg>
+<svg id="matrix" viewBox="0 0 500 500"></svg>
 
 <button id="btn">+</button>
 
 <script>
-let step = 0;
 
-const sequence = ["b1","b2","m1","b3","b4","m2","top"];
+// ===== ESTRUTURA DINÂMICA =====
 
-const nodes = {};
-sequence.forEach(id => {
-  nodes[id] = document.getElementById(id);
-});
+let convites = ["a","b","c","d","e","f"]; // simulação
 
-function clearAll(){
-  sequence.forEach(id => nodes[id].classList.remove("on"));
-}
+function gerarArvore(nivel){
 
-document.getElementById("btn").onclick = function(){
+  const nodes = [];
 
-  if(step < sequence.length){
-    nodes[sequence[step]].classList.add("on");
-    step++;
-  } else {
-    clearAll();
-    step = 0;
+  function criar(id, depth, index){
+    nodes.push({id, depth, index});
+
+    if(depth < nivel){
+      criar(id+"a", depth+1, index*2);
+      criar(id+"b", depth+1, index*2+1);
+    }
   }
 
+  criar("m", 0, 0);
+
+  return nodes;
+}
+
+// ===== DESENHAR =====
+
+function desenhar(){
+
+  const svg = document.getElementById("matrix");
+  svg.innerHTML = "";
+
+  const nodes = gerarArvore(3); // nível da árvore
+
+  const largura = 500;
+  const altura = 500;
+
+  const niveis = {};
+
+  nodes.forEach(n => {
+    if(!niveis[n.depth]) niveis[n.depth] = [];
+    niveis[n.depth].push(n);
+  });
+
+  // desenhar linhas primeiro
+  nodes.forEach(n => {
+
+    if(n.id !== "m"){
+      const pai = n.id.slice(0, -1);
+
+      const parent = nodes.find(x => x.id === pai);
+
+      if(parent){
+
+        const x1 = (parent.index + 1) * (largura / (Math.pow(2, parent.depth+1)));
+        const y1 = (parent.depth + 1) * 100;
+
+        const x2 = (n.index + 1) * (largura / (Math.pow(2, n.depth+1)));
+        const y2 = (n.depth + 1) * 100;
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("class", "link");
+
+        svg.appendChild(line);
+      }
+    }
+
+  });
+
+  // desenhar nós
+  nodes.forEach((n, i) => {
+
+    const x = (n.index + 1) * (largura / (Math.pow(2, n.depth+1)));
+    const y = (n.depth + 1) * 100;
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    circle.setAttribute("r", 6);
+    circle.setAttribute("class", "node");
+
+    // 🔥 ativa baseado nos convites
+    if(convites[i]){
+      circle.classList.add("on");
+    }
+
+    svg.appendChild(circle);
+
+  });
+
+}
+
+desenhar();
+
+// ===== BOTÃO + (expande) =====
+
+document.getElementById("btn").onclick = function(){
+  convites.push("novo");
+  desenhar();
 };
+
 </script>
 
 </body>
