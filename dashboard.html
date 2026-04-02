@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
 
 <style>
@@ -11,12 +12,10 @@ body{
   background:#f5f7fa;
 }
 
-/* TOPO DISCRETO */
+/* TOPO */
 #topbar{
-  position:fixed;
+  position:sticky;
   top:0;
-  left:0;
-  width:100%;
   padding:10px;
   font-size:14px;
   color:#003366;
@@ -25,14 +24,12 @@ body{
   text-align:center;
 }
 
-/* MATRIZ CENTRAL */
+/* MATRIZ */
 svg{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%, -50%);
   width:90%;
   max-width:400px;
+  margin:40px auto;
+  display:block;
 }
 
 /* PONTOS */
@@ -46,7 +43,7 @@ circle{
   opacity:1;
 }
 
-/* BOTÃO FLUTUANTE */
+/* BOTÃO */
 #btn{
   position:fixed;
   bottom:20px;
@@ -60,7 +57,6 @@ circle{
   font-size:26px;
   cursor:pointer;
   box-shadow:0 4px 12px rgba(0,0,0,0.2);
-  transition:0.2s;
 }
 
 #btn:hover{
@@ -74,20 +70,19 @@ circle{
 
 <div id="topbar">Área do usuário</div>
 
-/* padrão (mobile primeiro) */
-svg{
-  width:90%;
-  max-width:400px;
-  margin:40px auto;
-  display:block;
-}
+<svg viewBox="0 0 480 460">
 
-/* só no desktop */
-@media (min-width: 768px){
-  svg{
-    margin-top:100px;
-  }
-}
+  <circle id="b1" cx="60" cy="360" r="8"></circle>
+  <circle id="b2" cx="180" cy="360" r="8"></circle>
+  <circle id="b3" cx="300" cy="360" r="8"></circle>
+  <circle id="b4" cx="420" cy="360" r="8"></circle>
+
+  <circle id="m1" cx="120" cy="200" r="10"></circle>
+  <circle id="m2" cx="360" cy="200" r="10"></circle>
+
+  <circle id="top" cx="240" cy="60" r="12"></circle>
+
+</svg>
 
 <button id="btn">+</button>
 
