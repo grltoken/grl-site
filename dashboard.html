@@ -74,19 +74,20 @@ circle{
 
 <div id="topbar">Área do usuário</div>
 
-<svg viewBox="0 0 480 460">
+/* padrão (mobile primeiro) */
+svg{
+  width:90%;
+  max-width:400px;
+  margin:40px auto;
+  display:block;
+}
 
-  <circle id="b1" cx="60" cy="360" r="8"/>
-  <circle id="b2" cx="180" cy="360" r="8"/>
-  <circle id="b3" cx="300" cy="360" r="8"/>
-  <circle id="b4" cx="420" cy="360" r="8"/>
-
-  <circle id="m1" cx="120" cy="200" r="10"/>
-  <circle id="m2" cx="360" cy="200" r="10"/>
-
-  <circle id="top" cx="240" cy="60" r="12"/>
-
-</svg>
+/* só no desktop */
+@media (min-width: 768px){
+  svg{
+    margin-top:100px;
+  }
+}
 
 <button id="btn">+</button>
 
