@@ -7,306 +7,65 @@
 
 <style>
 body{
-  background:#ffffff;
   margin:0;
-
   display:flex;
-  flex-direction:column;
-  align-items:center;
   justify-content:center;
-
-  min-height:100vh;
-  padding:20px;
+  align-items:center;
+  height:100vh;
+  font-family:Arial;
+  flex-direction:column;
 }
 
-/* BOTÃO LOGIN */
-#loginBtn{
-  position:fixed;
-  top:10px;
-  left:10px;
+h1{
+  color:#003366;
 }
 
-#loginBtn button{
-  padding:6px 10px;
+button{
+  padding:15px 25px;
   background:#003366;
   color:#fff;
   border:none;
-  font-family: Consolas, 'Courier New', monospace;
   cursor:pointer;
-}
-
-/* MODAL */
-#modal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.7);
-  display:none;
-  justify-content:center;
-  align-items:center;
-}
-
-#modalBox{
-  background:#fff;
-  padding:20px;
-  text-align:center;
-}
-
-/* TÍTULO */
-h1{
-  color:#003366;
-  font-family: Consolas, 'Courier New', monospace;
-  font-size:28px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-
-  margin:0 0 40px 0;
-  text-align:center;
-}
-
-/* MATRIZ */
-svg{
-  width:90%;
-  max-width:420px;
-}
-
-circle{
-  fill:#003366;
-  opacity:0;
-  transform:scale(0.6);
-  transition: all .4s ease;
-}
-
-circle.on{
-  opacity:1;
-  transform:scale(1);
-}
-
-/* PAINEL */
-#painel{
   margin-top:20px;
-}
-
-.convite{
-  border:1px solid #003366;
-  padding:8px;
-  margin:5px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="loginBtn">
-  <button onclick="login()">Login</button>
-</div>
+<h1>MATRIZ</h1>
 
-<h1 id="title"></h1>
+<button onclick="testar()">Testar Firebase</button>
 
-<svg viewBox="0 0 480 460">
-<circle id="b1" cx="60" cy="360" r="6"/>
-<circle id="b2" cx="180" cy="360" r="6"/>
-<circle id="b3" cx="300" cy="360" r="6"/>
-<circle id="b4" cx="420" cy="360" r="6"/>
-<circle id="m1" cx="120" cy="200" r="7"/>
-<circle id="m2" cx="360" cy="200" r="7"/>
-<circle id="top" cx="240" cy="60" r="8"/>
-</svg>
-
-<div id="painel"></div>
-
-<!-- MODAL -->
-<div id="modal">
-  <div id="modalBox">
-    <h3>Acesso restrito</h3>
-    <p>Ative seu acesso para entrar na matriz</p>
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=pagamento">
-    <p style="font-size:12px;">Simulação de pagamento</p>
-    <button onclick="liberar()">Já paguei</button>
-  </div>
-</div>
-
-<script>
-
-// ===== MATRIZ =====
-const nodes = {
-  b1:document.getElementById('b1'),
-  b2:document.getElementById('b2'),
-  b3:document.getElementById('b3'),
-  b4:document.getElementById('b4'),
-  m1:document.getElementById('m1'),
-  m2:document.getElementById('m2'),
-  top:document.getElementById('top')
-};
-
-const title = document.getElementById('title');
-const text = "MASTERMINDs";
-
-function show(id){ nodes[id].classList.add('on'); }
-function hide(id){ nodes[id].classList.remove('on'); }
-
-function reset(){
-  Object.keys(nodes).forEach(hide);
-}
-
-function typeText(){
-  title.innerHTML="";
-  let i=0;
-
-  const interval=setInterval(()=>{
-    title.innerHTML=text.substring(0,i+1)+"|";
-    i++;
-    if(i>=text.length) clearInterval(interval);
-  },80);
-}
-
-function run(){
-  reset();
-  title.innerHTML="";
-
-  setTimeout(()=>{show('b1')},400);
-  setTimeout(()=>{hide('b1');show('m1')},1200);
-  setTimeout(()=>{show('b1');show('b2')},2000);
-  setTimeout(()=>{hide('m1');hide('b1');hide('b2');show('top')},2800);
-  setTimeout(()=>{show('m1');show('m2')},3600);
-  setTimeout(()=>{show('b1');show('b2');show('b3');show('b4')},4500);
-  setTimeout(()=>{reset()},5800);
-  setTimeout(()=>{typeText()},6500);
-}
-
-run();
-setInterval(run,9000);
-
-// ===== SISTEMA =====
-
-function abrirLogin(){
-  const user = localStorage.getItem("user");
-
-  if(user){
-    abrirPainel();
-  }else{
-    document.getElementById("modal").style.display="flex";
-  }
-}
-
-function liberar(){
-
-  const user = {
-    convites:[gerar(),gerar()]
-  };
-
-  localStorage.setItem("user",JSON.stringify(user));
-
-  document.getElementById("modal").style.display="none";
-
-  abrirPainel();
-}
-
-function gerar(){
-  return "MM-"+Math.random().toString(36).substring(2,8).toUpperCase();
-}
-
-function abrirPainel(){
-
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  document.getElementById("painel").innerHTML=`
-    <h3>Minha Matriz</h3>
-    <p>Convide 2 pessoas:</p>
-    <div class="convite">${user.convites[0]}</div>
-    <div class="convite">${user.convites[1]}</div>
-  `;
-}
-
-</script>
-<script type="module">
-
-<!-- FIREBASE V8 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
 const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "..."
+  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
+  authDomain: "grlnetwork.firebaseapp.com",
+  projectId: "grlnetwork",
+  storageBucket: "grlnetwork.firebasestorage.app",
+  messagingSenderId: "887517900417",
+  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
 };
 
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
 
-db.collection("users").doc("top").get()
-.then(doc => {
-  console.log("TOP:", doc.data());
-})
-.catch(error => {
-  console.log("Erro:", error);
-});
-</script>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-    authDomain: "grlnetwork.firebaseapp.com",
-    databaseURL: "https://grlnetwork-default-rtdb.firebaseio.com",
-    projectId: "grlnetwork",
-    storageBucket: "grlnetwork.firebasestorage.app",
-    messagingSenderId: "887517900417",
-    appId: "1:887517900417:web:d6bfd784e762bbd6312780"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+function testar(){
+  db.collection("usuarios").doc("top").get()
+  .then(doc => {
+    console.log("TOP:", doc.data());
+    alert("Veja o console");
+  })
+  .catch(error => {
+    console.log("Erro:", error);
+    alert("Erro");
+  });
+}
 </script>
 
-<script>
-const db = firebase.firestore();
-
-db.collection("users").doc("top").get()
-.then(doc => {
-  console.log("TOP:", doc.data());
-})
-.catch(error => {
-  console.log("Erro:", error);
-});
-<!-- FIREBASE CDN -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI",
-  projectId: "COLE_AQUI",
-  storageBucket: "COLE_AQUI",
-  messagingSenderId: "COLE_AQUI",
-  appId: "COLE_AQUI"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.firestore();
-
-// TESTE AUTOMÁTICO
-db.collection("users").doc("top").get()
-.then(doc => {
-  console.log("TOP:", doc.data());
-})
-.catch(error => {
-  console.log("Erro:", error);
-});
-</script>  
-</script>
-
-</body>
-</html>  
 </body>
 </html>
