@@ -1,253 +1,108 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
-
-<style>
-body{
-  margin:0;
-  font-family: Consolas, monospace;
-  background:#fff;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-/* TOPO */
-#topbar{
-  width:100%;
-  text-align:center;
-  padding:10px;
-  font-size:14px;
-  border-bottom:1px solid #003366;
-}
-
-/* MATRIZ */
-svg{
-  width:90%;
-  max-width:420px;
-  margin-top:30px;
-}
-
-circle{
-  fill:#003366;
-  opacity:0.2;
-  transition:0.4s;
-}
-
-circle.on{
-  opacity:1;
-}
-
-#top{
-  fill:gold;
-}
-
-/* LINHAS */
-.link{
-  stroke:gold;
-  stroke-width:2;
-  opacity:0.2;
-}
-
-.link.on{
-  opacity:1;
-}
-
-/* CONVITES */
-#convites{
-  margin-top:20px;
-  text-align:center;
-}
-
-.convite{
-  border:1px solid #003366;
-  padding:8px;
-  margin:5px;
-  cursor:pointer;
-}
-
-/* BOTÃO + */
-#btn{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:#003366;
-  color:#fff;
-  border:none;
-  border-radius:50%;
-  width:60px;
-  height:60px;
-  font-size:28px;
-}
-</style>
+  <title>Dashboard</title>
 </head>
-
 <body>
 
-<div id="topbar">Área do usuário</div>
+<h2>Minha Matriz</h2>
 
-<svg viewBox="0 0 480 460">
+<div id="matriz"></div>
 
-<!-- LINHAS -->
-<line x1="240" y1="60" x2="120" y2="200" class="link"/>
-<line x1="240" y1="60" x2="360" y2="200" class="link"/>
-
-<line x1="120" y1="200" x2="60" y2="360" class="link"/>
-<line x1="120" y1="200" x2="180" y2="360" class="link"/>
-
-<line x1="360" y1="200" x2="300" y2="360" class="link"/>
-<line x1="360" y1="200" x2="420" y2="360" class="link"/>
-
-<!-- NÓS -->
-<circle id="m1a" cx="60" cy="360" r="6"/>
-<circle id="m1b" cx="180" cy="360" r="6"/>
-
-<circle id="m2a" cx="300" cy="360" r="6"/>
-<circle id="m2b" cx="420" cy="360" r="6"/>
-
-<circle id="m1" cx="120" cy="200" r="7"/>
-<circle id="m2" cx="360" cy="200" r="7"/>
-
-<circle id="top" cx="240" cy="60" r="9"/>
-
-</svg>
-
+<h3>Convites</h3>
 <div id="convites"></div>
 
-<button id="btn">+</button>
+<button onclick="logout()">Sair</button>
 
-<script type="module">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="firebase.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-  authDomain: "grlnetwork.firebaseapp.com",
-  projectId: "grlnetwork",
-  storageBucket: "grlnetwork.firebasestorage.app",
-  messagingSenderId: "887517900417",
-  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
-};
+// 🔒 PROTEÇÃO TOTAL
+auth.onAuthStateChanged(async (user) => {
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-let convites = [];
-let userId = null;
-
-// 🔐 VERIFICA LOGIN
-onAuthStateChanged(auth, async (user) => {
-
-  if (!user) {
+  if(!user){
+    alert("Acesso restrito");
     window.location.href = "index.html";
     return;
   }
 
-  userId = user.uid;
+  try {
 
-  const ref = doc(db, "usuarios", userId);
-  const snap = await getDoc(ref);
+    const doc = await db.collection("usuarios").doc(user.uid).get();
 
-  if (snap.exists()) {
-    convites = snap.data().convites || [];
-    atualizarTela();
+    // 🔒 SE NÃO EXISTE NO BANCO → BLOQUEIA
+    if(!doc.exists){
+      alert("Usuário inválido");
+      await auth.signOut();
+      window.location.href = "index.html";
+      return;
+    }
+
+    const data = doc.data();
+
+    // 🔒 SE NÃO TEM MATRIZ → BLOQUEIA
+    if(!data.matriz){
+      alert("Acesso não autorizado");
+      await auth.signOut();
+      window.location.href = "index.html";
+      return;
+    }
+
+    render(data);
+
+  } catch(e){
+    alert("Erro ao carregar dados");
+    window.location.href = "index.html";
   }
 
 });
 
-// ===== ATUALIZA TUDO =====
+// 🎯 RENDER MATRIZ
+function render(data){
 
-function atualizarTela(){
-  ligarMatriz(convites);
-  mostrarConvites(convites);
-}
+  let html = "";
 
-// ===== MATRIZ =====
+  const nomes = {
+    m1: "Direto 1",
+    m2: "Direto 2",
+    m1a: "Nível 2 - A",
+    m1b: "Nível 2 - B",
+    m2a: "Nível 2 - C",
+    m2b: "Nível 2 - D"
+  };
 
-function ligarMatriz(convites){
-
-  document.querySelectorAll("circle").forEach(c => c.classList.remove("on"));
-  document.querySelectorAll(".link").forEach(l => l.classList.remove("on"));
-
-  if(convites[0]) document.getElementById("m1a").classList.add("on");
-  if(convites[1]) document.getElementById("m1b").classList.add("on");
-  if(convites[2]) document.getElementById("m2a").classList.add("on");
-  if(convites[3]) document.getElementById("m2b").classList.add("on");
-
-  if(convites[0] && convites[1]){
-    document.getElementById("m1").classList.add("on");
-
-    document.querySelectorAll('.link')[2].classList.add("on");
-    document.querySelectorAll('.link')[3].classList.add("on");
+  for(let key in data.matriz){
+    html += `<div>${nomes[key]}: ${data.matriz[key] ? "✔" : "❌"}</div>`;
   }
 
-  if(convites[2] && convites[3]){
-    document.getElementById("m2").classList.add("on");
+  document.getElementById("matriz").innerHTML = html;
 
-    document.querySelectorAll('.link')[4].classList.add("on");
-    document.querySelectorAll('.link')[5].classList.add("on");
-  }
+  let conv = "";
 
-  if(
-    convites[0] && convites[1] &&
-    convites[2] && convites[3]
-  ){
-    document.getElementById("top").classList.add("on");
-
-    document.querySelectorAll('.link')[0].classList.add("on");
-    document.querySelectorAll('.link')[1].classList.add("on");
-  }
-
-}
-
-// ===== CONVITES =====
-
-function mostrarConvites(lista){
-
-  const div = document.getElementById("convites");
-
-  div.innerHTML = "<h3>Seus convites</h3>";
-
-  lista.forEach(c => {
-
-    const el = document.createElement("div");
-    el.className = "convite";
-    el.innerText = c;
-
-    el.onclick = () => {
-      navigator.clipboard.writeText(c);
-      el.innerText = "Copiado!";
-      setTimeout(()=> el.innerText = c, 1000);
-    };
-
-    div.appendChild(el);
+  data.convites.forEach(c => {
+    conv += `<div onclick="copiar('${c}')" style="cursor:pointer;">${c}</div>`;
   });
 
+  document.getElementById("convites").innerHTML = conv;
+
 }
 
-// ===== BOTÃO + =====
+// 📋 COPIAR CONVITE
+function copiar(texto){
+  navigator.clipboard.writeText(texto);
+  alert("Convite copiado: " + texto);
+}
 
-document.getElementById("btn").onclick = async function(){
-
-  const novo = "MM-" + Math.random().toString(36).substring(2,8).toUpperCase();
-
-  convites.push(novo);
-
-  const ref = doc(db, "usuarios", userId);
-
-  await updateDoc(ref, {
-    convites: convites
-  });
-
-  atualizarTela();
-
-};
+// 🚪 LOGOUT
+function logout(){
+  auth.signOut();
+  window.location.href = "index.html";
+}
 
 </script>
 
