@@ -20,13 +20,16 @@ h1{
   color:#003366;
 }
 
+input, button{
+  padding:12px;
+  margin:5px;
+}
+
 button{
-  padding:15px 25px;
   background:#003366;
   color:#fff;
   border:none;
   cursor:pointer;
-  margin-top:20px;
 }
 </style>
 </head>
@@ -35,7 +38,8 @@ button{
 
 <h1>MATRIZ</h1>
 
-<button onclick="testar()">Testar Firebase</button>
+<input id="email" placeholder="Digite seu email">
+<button onclick="entrar()">Entrar</button>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -54,16 +58,34 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
 
-function testar(){
-  db.collection("usuarios").doc("top").get()
-  .then(doc => {
-    console.log("TOP:", doc.data());
-    alert("Veja o console");
-  })
-  .catch(error => {
-    console.log("Erro:", error);
-    alert("Erro");
+async function entrar(){
+  const email = document.getElementById("email").value;
+
+  if(!email){
+    alert("Digite um email");
+    return;
+  }
+
+  // cria usuário simples
+  await db.collection("usuarios").doc(email).set({
+    email: email,
+    role: "user",
+    ativo: true,
+    pago: false,
+    indicados: [],
+    convites: [],
+    positions: {
+      m1: null,
+      m2: null,
+      a1: null,
+      a2: null,
+      b1: null,
+      b2: null
+    }
   });
+
+  alert("Usuário criado!");
+  console.log("Usuário criado:", email);
 }
 </script>
 
