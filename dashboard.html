@@ -2,12 +2,95 @@
 <html>
 <head>
   <title>Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #0f172a;
+      color: white;
+    }
+
+    h2 {
+      margin-top: 20px;
+    }
+
+    .matriz {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 30px;
+      gap: 20px;
+    }
+
+    .linha {
+      display: flex;
+      gap: 20px;
+    }
+
+    .node {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      box-shadow: 0 0 10px #000;
+    }
+
+    .ativo {
+      background: #22c55e;
+      box-shadow: 0 0 15px #22c55e;
+      transform: scale(1.1);
+    }
+
+    .convite {
+      background: #1e293b;
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: 0.2s;
+    }
+
+    .convite:hover {
+      background: #334155;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      background: #ef4444;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+  </style>
+
 </head>
 <body>
 
 <h2>Minha Matriz</h2>
 
-<div id="matriz"></div>
+<div class="matriz">
+
+  <div class="linha">
+    <div id="m1" class="node"></div>
+    <div id="m2" class="node"></div>
+  </div>
+
+  <div class="linha">
+    <div id="m1a" class="node"></div>
+    <div id="m1b" class="node"></div>
+    <div id="m2a" class="node"></div>
+    <div id="m2b" class="node"></div>
+  </div>
+
+</div>
 
 <h3>Convites</h3>
 <div id="convites"></div>
@@ -22,83 +105,70 @@
 
 <script>
 
-// 🔒 PROTEÇÃO TOTAL
+// 🔒 PROTEÇÃO + CARREGAMENTO
 auth.onAuthStateChanged(async (user) => {
 
   if(!user){
-    alert("Acesso restrito");
     window.location.href = "index.html";
     return;
   }
 
-  try {
+  const doc = await db.collection("usuarios").doc(user.uid).get();
 
-    const doc = await db.collection("usuarios").doc(user.uid).get();
-
-    // 🔒 SE NÃO EXISTE NO BANCO → BLOQUEIA
-    if(!doc.exists){
-      alert("Usuário inválido");
-      await auth.signOut();
-      window.location.href = "index.html";
-      return;
-    }
-
-    const data = doc.data();
-
-    // 🔒 SE NÃO TEM MATRIZ → BLOQUEIA
-    if(!data.matriz){
-      alert("Acesso não autorizado");
-      await auth.signOut();
-      window.location.href = "index.html";
-      return;
-    }
-
-    render(data);
-
-  } catch(e){
-    alert("Erro ao carregar dados");
+  if(!doc.exists){
+    await auth.signOut();
     window.location.href = "index.html";
+    return;
   }
+
+  const data = doc.data();
+
+  if(!data.matriz){
+    window.location.href = "index.html";
+    return;
+  }
+
+  render(data);
 
 });
 
-// 🎯 RENDER MATRIZ
+// 🎯 RENDER BONITO
 function render(data){
+
+  const m = data.matriz;
+
+  atualizar("m1", m.m1);
+  atualizar("m2", m.m2);
+  atualizar("m1a", m.m1a);
+  atualizar("m1b", m.m1b);
+  atualizar("m2a", m.m2a);
+  atualizar("m2b", m.m2b);
 
   let html = "";
 
-  const nomes = {
-    m1: "Direto 1",
-    m2: "Direto 2",
-    m1a: "Nível 2 - A",
-    m1b: "Nível 2 - B",
-    m2a: "Nível 2 - C",
-    m2b: "Nível 2 - D"
-  };
-
-  for(let key in data.matriz){
-    html += `<div>${nomes[key]}: ${data.matriz[key] ? "✔" : "❌"}</div>`;
-  }
-
-  document.getElementById("matriz").innerHTML = html;
-
-  let conv = "";
-
   data.convites.forEach(c => {
-    conv += `<div onclick="copiar('${c}')" style="cursor:pointer;">${c}</div>`;
+    html += `<div class="convite" onclick="copiar('${c}')">${c}</div>`;
   });
 
-  document.getElementById("convites").innerHTML = conv;
+  document.getElementById("convites").innerHTML = html;
 
 }
 
-// 📋 COPIAR CONVITE
+// 🔥 ATIVA BOLINHA
+function atualizar(id, valor){
+  const el = document.getElementById(id);
+  if(valor){
+    el.classList.add("ativo");
+  }
+}
+
+// 📋 COPIAR
 function copiar(texto){
   navigator.clipboard.writeText(texto);
-  alert("Convite copiado: " + texto);
+  alert("Copiado: " + texto);
 }
 
-// 🚪 LOGOUT
+// 🚪 SAIR
 function logout(){
   auth.signOut();
   window.location.href = "index.html";
