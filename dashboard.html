@@ -1,178 +1,253 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #0f172a;
-      color: white;
-    }
+<style>
+body{
+  margin:0;
+  font-family: Consolas, monospace;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
 
-    h2 {
-      margin-top: 20px;
-    }
+/* TOPO */
+#topbar{
+  width:100%;
+  text-align:center;
+  padding:10px;
+  font-size:14px;
+  border-bottom:1px solid #003366;
+}
 
-    .matriz {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 30px;
-      gap: 20px;
-    }
+/* MATRIZ */
+svg{
+  width:90%;
+  max-width:420px;
+  margin-top:30px;
+}
 
-    .linha {
-      display: flex;
-      gap: 20px;
-    }
+circle{
+  fill:#003366;
+  opacity:0.2;
+  transition:0.4s;
+}
 
-    .node {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: #1e293b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.3s;
-      box-shadow: 0 0 10px #000;
-    }
+circle.on{
+  opacity:1;
+}
 
-    .ativo {
-      background: #22c55e;
-      box-shadow: 0 0 15px #22c55e;
-      transform: scale(1.1);
-    }
+#top{
+  fill:gold;
+}
 
-    .convite {
-      background: #1e293b;
-      padding: 10px;
-      margin: 5px;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: 0.2s;
-    }
+/* LINHAS */
+.link{
+  stroke:gold;
+  stroke-width:2;
+  opacity:0.2;
+}
 
-    .convite:hover {
-      background: #334155;
-    }
+.link.on{
+  opacity:1;
+}
 
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      border: none;
-      background: #ef4444;
-      color: white;
-      cursor: pointer;
-      border-radius: 6px;
-    }
+/* CONVITES */
+#convites{
+  margin-top:20px;
+  text-align:center;
+}
 
-  </style>
+.convite{
+  border:1px solid #003366;
+  padding:8px;
+  margin:5px;
+  cursor:pointer;
+}
 
+/* BOTÃO + */
+#btn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#003366;
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  width:60px;
+  height:60px;
+  font-size:28px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Minha Matriz</h2>
+<div id="topbar">Área do usuário</div>
 
-<div class="matriz">
+<svg viewBox="0 0 480 460">
 
-  <div class="linha">
-    <div id="m1" class="node"></div>
-    <div id="m2" class="node"></div>
-  </div>
+<!-- LINHAS -->
+<line x1="240" y1="60" x2="120" y2="200" class="link"/>
+<line x1="240" y1="60" x2="360" y2="200" class="link"/>
 
-  <div class="linha">
-    <div id="m1a" class="node"></div>
-    <div id="m1b" class="node"></div>
-    <div id="m2a" class="node"></div>
-    <div id="m2b" class="node"></div>
-  </div>
+<line x1="120" y1="200" x2="60" y2="360" class="link"/>
+<line x1="120" y1="200" x2="180" y2="360" class="link"/>
 
-</div>
+<line x1="360" y1="200" x2="300" y2="360" class="link"/>
+<line x1="360" y1="200" x2="420" y2="360" class="link"/>
 
-<h3>Convites</h3>
+<!-- NÓS -->
+<circle id="m1a" cx="60" cy="360" r="6"/>
+<circle id="m1b" cx="180" cy="360" r="6"/>
+
+<circle id="m2a" cx="300" cy="360" r="6"/>
+<circle id="m2b" cx="420" cy="360" r="6"/>
+
+<circle id="m1" cx="120" cy="200" r="7"/>
+<circle id="m2" cx="360" cy="200" r="7"/>
+
+<circle id="top" cx="240" cy="60" r="9"/>
+
+</svg>
+
 <div id="convites"></div>
 
-<button onclick="logout()">Sair</button>
+<button id="btn">+</button>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="firebase.js"></script>
+<script type="module">
 
-<script>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔒 PROTEÇÃO + CARREGAMENTO
-auth.onAuthStateChanged(async (user) => {
+const firebaseConfig = {
+  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
+  authDomain: "grlnetwork.firebaseapp.com",
+  projectId: "grlnetwork",
+  storageBucket: "grlnetwork.firebasestorage.app",
+  messagingSenderId: "887517900417",
+  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
+};
 
-  if(!user){
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let convites = [];
+let userId = null;
+
+// 🔐 VERIFICA LOGIN
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
     window.location.href = "index.html";
     return;
   }
 
-  const doc = await db.collection("usuarios").doc(user.uid).get();
+  userId = user.uid;
 
-  if(!doc.exists){
-    await auth.signOut();
-    window.location.href = "index.html";
-    return;
+  const ref = doc(db, "usuarios", userId);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    convites = snap.data().convites || [];
+    atualizarTela();
   }
-
-  const data = doc.data();
-
-  if(!data.matriz){
-    window.location.href = "index.html";
-    return;
-  }
-
-  render(data);
 
 });
 
-// 🎯 RENDER BONITO
-function render(data){
+// ===== ATUALIZA TUDO =====
 
-  const m = data.matriz;
+function atualizarTela(){
+  ligarMatriz(convites);
+  mostrarConvites(convites);
+}
 
-  atualizar("m1", m.m1);
-  atualizar("m2", m.m2);
-  atualizar("m1a", m.m1a);
-  atualizar("m1b", m.m1b);
-  atualizar("m2a", m.m2a);
-  atualizar("m2b", m.m2b);
+// ===== MATRIZ =====
 
-  let html = "";
+function ligarMatriz(convites){
 
-  data.convites.forEach(c => {
-    html += `<div class="convite" onclick="copiar('${c}')">${c}</div>`;
+  document.querySelectorAll("circle").forEach(c => c.classList.remove("on"));
+  document.querySelectorAll(".link").forEach(l => l.classList.remove("on"));
+
+  if(convites[0]) document.getElementById("m1a").classList.add("on");
+  if(convites[1]) document.getElementById("m1b").classList.add("on");
+  if(convites[2]) document.getElementById("m2a").classList.add("on");
+  if(convites[3]) document.getElementById("m2b").classList.add("on");
+
+  if(convites[0] && convites[1]){
+    document.getElementById("m1").classList.add("on");
+
+    document.querySelectorAll('.link')[2].classList.add("on");
+    document.querySelectorAll('.link')[3].classList.add("on");
+  }
+
+  if(convites[2] && convites[3]){
+    document.getElementById("m2").classList.add("on");
+
+    document.querySelectorAll('.link')[4].classList.add("on");
+    document.querySelectorAll('.link')[5].classList.add("on");
+  }
+
+  if(
+    convites[0] && convites[1] &&
+    convites[2] && convites[3]
+  ){
+    document.getElementById("top").classList.add("on");
+
+    document.querySelectorAll('.link')[0].classList.add("on");
+    document.querySelectorAll('.link')[1].classList.add("on");
+  }
+
+}
+
+// ===== CONVITES =====
+
+function mostrarConvites(lista){
+
+  const div = document.getElementById("convites");
+
+  div.innerHTML = "<h3>Seus convites</h3>";
+
+  lista.forEach(c => {
+
+    const el = document.createElement("div");
+    el.className = "convite";
+    el.innerText = c;
+
+    el.onclick = () => {
+      navigator.clipboard.writeText(c);
+      el.innerText = "Copiado!";
+      setTimeout(()=> el.innerText = c, 1000);
+    };
+
+    div.appendChild(el);
   });
 
-  document.getElementById("convites").innerHTML = html;
-
 }
 
-// 🔥 ATIVA BOLINHA
-function atualizar(id, valor){
-  const el = document.getElementById(id);
-  if(valor){
-    el.classList.add("ativo");
-  }
-}
+// ===== BOTÃO + =====
 
-// 📋 COPIAR
-function copiar(texto){
-  navigator.clipboard.writeText(texto);
-  alert("Copiado: " + texto);
-}
+document.getElementById("btn").onclick = async function(){
 
-// 🚪 SAIR
-function logout(){
-  auth.signOut();
-  window.location.href = "index.html";
-}
+  const novo = "MM-" + Math.random().toString(36).substring(2,8).toUpperCase();
+
+  convites.push(novo);
+
+  const ref = doc(db, "usuarios", userId);
+
+  await updateDoc(ref, {
+    convites: convites
+  });
+
+  atualizarTela();
+
+};
 
 </script>
 
