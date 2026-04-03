@@ -227,42 +227,24 @@ function abrirPainel(){
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+<script>
 const firebaseConfig = {
-  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-  authDomain: "grlnetwork.firebaseapp.com",
-  projectId: "grlnetwork",
-  storageBucket: "grlnetwork.firebasestorage.app",
-  messagingSenderId: "887517900417",
-  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "..."
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
 
-window.login = async function(){
+const db = firebase.firestore();
 
-  const email = prompt("Email:");
-  const senha = prompt("Senha:");
-
-  try {
-    await signInWithEmailAndPassword(auth, email, senha);
-  } catch {
-
-    const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-    const user = userCredential.user;
-
-    await setDoc(doc(db, "usuarios", user.uid), {
-      convites: [
-        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase(),
-        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase()
-      ]
-    });
-  }
-
-  window.location.href = "dashboard.html";
-};
-
+db.collection("users").doc("top").get()
+.then(doc => {
+  console.log("TOP:", doc.data());
+})
+.catch(error => {
+  console.log("Erro:", error);
+});
 </script>
 <script type="module">
   // Import the functions you need from the SDKs you need
