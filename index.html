@@ -295,6 +295,33 @@ db.collection("users").doc("top").get()
 .catch(error => {
   console.log("Erro:", error);
 });
+<!-- FIREBASE CDN -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "COLE_AQUI",
+  authDomain: "COLE_AQUI",
+  projectId: "COLE_AQUI",
+  storageBucket: "COLE_AQUI",
+  messagingSenderId: "COLE_AQUI",
+  appId: "COLE_AQUI"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+// TESTE AUTOMÁTICO
+db.collection("users").doc("top").get()
+.then(doc => {
+  console.log("TOP:", doc.data());
+})
+.catch(error => {
+  console.log("Erro:", error);
+});
+</script>  
 </script>
 
 </body>
