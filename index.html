@@ -283,6 +283,21 @@ window.login = async function(){
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-</script>  
+</script>
+
+<script>
+const db = firebase.firestore();
+
+db.collection("users").doc("top").get()
+.then(doc => {
+  console.log("TOP:", doc.data());
+})
+.catch(error => {
+  console.log("Erro:", error);
+});
+</script>
+
+</body>
+</html>  
 </body>
 </html>
