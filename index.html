@@ -1,124 +1,268 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matriz</title>
+
+<style>
+body{
+  background:#ffffff;
+  margin:0;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  min-height:100vh;
+  padding:20px;
+}
+
+/* BOTÃO LOGIN */
+#loginBtn{
+  position:fixed;
+  top:10px;
+  left:10px;
+}
+
+#loginBtn button{
+  padding:6px 10px;
+  background:#003366;
+  color:#fff;
+  border:none;
+  font-family: Consolas, 'Courier New', monospace;
+  cursor:pointer;
+}
+
+/* MODAL */
+#modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+#modalBox{
+  background:#fff;
+  padding:20px;
+  text-align:center;
+}
+
+/* TÍTULO */
+h1{
+  color:#003366;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size:28px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+
+  margin:0 0 40px 0;
+  text-align:center;
+}
+
+/* MATRIZ */
+svg{
+  width:90%;
+  max-width:420px;
+}
+
+circle{
+  fill:#003366;
+  opacity:0;
+  transform:scale(0.6);
+  transition: all .4s ease;
+}
+
+circle.on{
+  opacity:1;
+  transform:scale(1);
+}
+
+/* PAINEL */
+#painel{
+  margin-top:20px;
+}
+
+.convite{
+  border:1px solid #003366;
+  padding:8px;
+  margin:5px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Cadastro</h2>
+<div id="loginBtn">
+  <button onclick="login()">Login</button>
+</div>
 
-<input id="email" placeholder="Email"><br><br>
-<input id="senha" placeholder="Senha" type="password"><br><br>
-<input id="convite" placeholder="Código de convite"><br><br>
+<h1 id="title"></h1>
 
-<button onclick="cadastrar()">Cadastrar</button>
+<svg viewBox="0 0 480 460">
+<circle id="b1" cx="60" cy="360" r="6"/>
+<circle id="b2" cx="180" cy="360" r="6"/>
+<circle id="b3" cx="300" cy="360" r="6"/>
+<circle id="b4" cx="420" cy="360" r="6"/>
+<circle id="m1" cx="120" cy="200" r="7"/>
+<circle id="m2" cx="360" cy="200" r="7"/>
+<circle id="top" cx="240" cy="60" r="8"/>
+</svg>
 
-<hr>
+<div id="painel"></div>
 
-<h2>Login</h2>
-
-<input id="loginEmail" placeholder="Email"><br><br>
-<input id="loginSenha" placeholder="Senha" type="password"><br><br>
-
-<button onclick="login()">Entrar</button>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="firebase.js"></script>
+<!-- MODAL -->
+<div id="modal">
+  <div id="modalBox">
+    <h3>Acesso restrito</h3>
+    <p>Ative seu acesso para entrar na matriz</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=pagamento">
+    <p style="font-size:12px;">Simulação de pagamento</p>
+    <button onclick="liberar()">Já paguei</button>
+  </div>
+</div>
 
 <script>
 
+// ===== MATRIZ =====
+const nodes = {
+  b1:document.getElementById('b1'),
+  b2:document.getElementById('b2'),
+  b3:document.getElementById('b3'),
+  b4:document.getElementById('b4'),
+  m1:document.getElementById('m1'),
+  m2:document.getElementById('m2'),
+  top:document.getElementById('top')
+};
+
+const title = document.getElementById('title');
+const text = "MASTERMINDs";
+
+function show(id){ nodes[id].classList.add('on'); }
+function hide(id){ nodes[id].classList.remove('on'); }
+
+function reset(){
+  Object.keys(nodes).forEach(hide);
+}
+
+function typeText(){
+  title.innerHTML="";
+  let i=0;
+
+  const interval=setInterval(()=>{
+    title.innerHTML=text.substring(0,i+1)+"|";
+    i++;
+    if(i>=text.length) clearInterval(interval);
+  },80);
+}
+
+function run(){
+  reset();
+  title.innerHTML="";
+
+  setTimeout(()=>{show('b1')},400);
+  setTimeout(()=>{hide('b1');show('m1')},1200);
+  setTimeout(()=>{show('b1');show('b2')},2000);
+  setTimeout(()=>{hide('m1');hide('b1');hide('b2');show('top')},2800);
+  setTimeout(()=>{show('m1');show('m2')},3600);
+  setTimeout(()=>{show('b1');show('b2');show('b3');show('b4')},4500);
+  setTimeout(()=>{reset()},5800);
+  setTimeout(()=>{typeText()},6500);
+}
+
+run();
+setInterval(run,9000);
+
+// ===== SISTEMA =====
+
+function abrirLogin(){
+  const user = localStorage.getItem("user");
+
+  if(user){
+    abrirPainel();
+  }else{
+    document.getElementById("modal").style.display="flex";
+  }
+}
+
+function liberar(){
+
+  const user = {
+    convites:[gerar(),gerar()]
+  };
+
+  localStorage.setItem("user",JSON.stringify(user));
+
+  document.getElementById("modal").style.display="none";
+
+  abrirPainel();
+}
+
 function gerar(){
-  return "MM-" + Math.random().toString(36).substring(2,8).toUpperCase();
+  return "MM-"+Math.random().toString(36).substring(2,8).toUpperCase();
 }
 
-async function cadastrar(){
+function abrirPainel(){
 
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
-  const codigo = document.getElementById("convite").value;
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  if(!email || !senha || !codigo){
-    alert("Preencha todos os campos");
-    return;
-  }
-
-  try {
-
-    // 🔥 VALIDAR CONVITE
-    const snap = await db.collection("usuarios")
-      .where("convites", "array-contains", codigo)
-      .get();
-
-    if(snap.empty){
-      alert("Convite inválido ou já usado");
-      return;
-    }
-
-    // 🔥 CRIAR USUÁRIO
-    const userCred = await auth.createUserWithEmailAndPassword(email, senha);
-    const uid = userCred.user.uid;
-
-    const doc = snap.docs[0];
-    const dono = doc.data();
-
-    let m = {...dono.matriz};
-
-    // 🔥 INSERIR NA MATRIZ
-    if(!m.m1) m.m1 = uid;
-    else if(!m.m2) m.m2 = uid;
-    else if(!m.m1a) m.m1a = uid;
-    else if(!m.m1b) m.m1b = uid;
-    else if(!m.m2a) m.m2a = uid;
-    else if(!m.m2b) m.m2b = uid;
-    else {
-      alert("Matriz cheia");
-      return;
-    }
-
-    // 🔥 ATUALIZAR DONO
-    await doc.ref.update({
-      matriz: m,
-      convites: dono.convites.filter(c => c !== codigo)
-    });
-
-    // 🔥 CRIAR NOVO USUÁRIO
-    await db.collection("usuarios").doc(uid).set({
-      email,
-      matriz: {
-        m1:null,m2:null,m1a:null,m1b:null,m2a:null,m2b:null
-      },
-      convites: [gerar(), gerar()],
-      status: "incompleto"
-    });
-
-    alert("Conta criada com sucesso!");
-
-    window.location.href = "dashboard.html";
-
-  } catch (e){
-    alert("Erro: " + e.message);
-  }
-
-}
-
-async function login(){
-
-  const email = document.getElementById("loginEmail").value;
-  const senha = document.getElementById("loginSenha").value;
-
-  try {
-    await auth.signInWithEmailAndPassword(email, senha);
-    window.location.href = "dashboard.html";
-  } catch(e){
-    alert("Erro: " + e.message);
-  }
-
+  document.getElementById("painel").innerHTML=`
+    <h3>Minha Matriz</h3>
+    <p>Convide 2 pessoas:</p>
+    <div class="convite">${user.convites[0]}</div>
+    <div class="convite">${user.convites[1]}</div>
+  `;
 }
 
 </script>
+<script type="module">
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
+  authDomain: "grlnetwork.firebaseapp.com",
+  projectId: "grlnetwork",
+  storageBucket: "grlnetwork.firebasestorage.app",
+  messagingSenderId: "887517900417",
+  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.login = async function(){
+
+  const email = prompt("Email:");
+  const senha = prompt("Senha:");
+
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+  } catch {
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+    const user = userCredential.user;
+
+    await setDoc(doc(db, "usuarios", user.uid), {
+      convites: [
+        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase(),
+        "MM-" + Math.random().toString(36).substring(2,8).toUpperCase()
+      ]
+    });
+  }
+
+  window.location.href = "dashboard.html";
+};
+
+</script>
 </body>
 </html>
