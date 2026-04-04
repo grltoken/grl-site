@@ -9,12 +9,10 @@
 body{
   background:#ffffff;
   margin:0;
-
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-
   min-height:100vh;
   padding:20px;
 }
@@ -30,18 +28,17 @@ body{
   background:#003366;
   color:#fff;
   border:none;
-  font-family: Consolas, 'Courier New', monospace;
+  font-family: Consolas, monospace;
   cursor:pointer;
 }
 
 h1{
   color:#003366;
-  font-family: Consolas, 'Courier New', monospace;
+  font-family: Consolas, monospace;
   font-size:28px;
   letter-spacing:3px;
   text-transform:uppercase;
-  margin:0 0 40px 0;
-  text-align:center;
+  margin-bottom:40px;
 }
 
 svg{
@@ -82,8 +79,7 @@ circle.on{
 </svg>
 
 <script>
-
-// animação mantida
+// animação (mantida)
 const nodes = {
   b1:document.getElementById('b1'),
   b2:document.getElementById('b2'),
@@ -131,14 +127,13 @@ function run(){
 
 run();
 setInterval(run,9000);
-
 </script>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
@@ -155,23 +150,54 @@ const db = getFirestore(app);
 
 window.login = async function(){
 
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("ref");
+
   const email = prompt("Email:");
   const senha = prompt("Senha:");
 
+  // 🔒 BLOQUEIO TOTAL
+  if (!ref) {
+    alert("Cadastro permitido apenas por convite.");
+    return;
+  }
+
   try {
     await signInWithEmailAndPassword(auth, email, senha);
+
   } catch {
 
     const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
 
-    // 🔥 NOVA ESTRUTURA
     await setDoc(doc(db, "usuarios", user.uid), {
       left: null,
       right: null,
       status: "open",
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      parent: ref
     });
+
+    const parentRef = doc(db, "usuarios", ref);
+    const parentSnap = await getDoc(parentRef);
+
+    if (parentSnap.exists()) {
+
+      const parentData = parentSnap.data();
+
+      if (!parentData.left) {
+        await updateDoc(parentRef, { left: user.uid });
+
+      } else if (!parentData.right) {
+        await updateDoc(parentRef, { right: user.uid });
+
+      } else {
+        alert("Matriz do patrocinador já está cheia");
+        return;
+      }
+
+    }
+
   }
 
   window.location.href = "dashboard.html";
