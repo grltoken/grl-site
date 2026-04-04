@@ -15,7 +15,6 @@ body{
   align-items:center;
 }
 
-/* TOPO */
 #topbar{
   width:100%;
   text-align:center;
@@ -24,7 +23,6 @@ body{
   border-bottom:1px solid #003366;
 }
 
-/* MATRIZ */
 svg{
   width:90%;
   max-width:420px;
@@ -45,7 +43,6 @@ circle.on{
   fill:gold;
 }
 
-/* LINHAS */
 .link{
   stroke:gold;
   stroke-width:2;
@@ -56,7 +53,6 @@ circle.on{
   opacity:1;
 }
 
-/* CONVITES */
 #convites{
   margin-top:20px;
   text-align:center;
@@ -66,10 +62,8 @@ circle.on{
   border:1px solid #003366;
   padding:8px;
   margin:5px;
-  cursor:pointer;
 }
 
-/* BOTÃO + */
 #btn{
   position:fixed;
   bottom:20px;
@@ -91,26 +85,11 @@ circle.on{
 
 <svg viewBox="0 0 480 460">
 
-<!-- LINHAS -->
 <line x1="240" y1="60" x2="120" y2="200" class="link"/>
 <line x1="240" y1="60" x2="360" y2="200" class="link"/>
 
-<line x1="120" y1="200" x2="60" y2="360" class="link"/>
-<line x1="120" y1="200" x2="180" y2="360" class="link"/>
-
-<line x1="360" y1="200" x2="300" y2="360" class="link"/>
-<line x1="360" y1="200" x2="420" y2="360" class="link"/>
-
-<!-- NÓS -->
-<circle id="m1a" cx="60" cy="360" r="6"/>
-<circle id="m1b" cx="180" cy="360" r="6"/>
-
-<circle id="m2a" cx="300" cy="360" r="6"/>
-<circle id="m2b" cx="420" cy="360" r="6"/>
-
-<circle id="m1" cx="120" cy="200" r="7"/>
-<circle id="m2" cx="360" cy="200" r="7"/>
-
+<circle id="m1a" cx="120" cy="200" r="7"/>
+<circle id="m1b" cx="360" cy="200" r="7"/>
 <circle id="top" cx="240" cy="60" r="9"/>
 
 </svg>
@@ -138,10 +117,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let convites = [];
 let userId = null;
+let data = null;
 
-// 🔐 VERIFICA LOGIN
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
@@ -155,95 +133,65 @@ onAuthStateChanged(auth, async (user) => {
   const snap = await getDoc(ref);
 
   if (snap.exists()) {
-    convites = snap.data().convites || [];
+    data = snap.data();
     atualizarTela();
   }
 
 });
 
-// ===== ATUALIZA TUDO =====
-
 function atualizarTela(){
-  ligarMatriz(convites);
-  mostrarConvites(convites);
+  mostrarMatriz();
+  mostrarConvites();
 }
 
-// ===== MATRIZ =====
-
-function ligarMatriz(convites){
+function mostrarMatriz(){
 
   document.querySelectorAll("circle").forEach(c => c.classList.remove("on"));
-  document.querySelectorAll(".link").forEach(l => l.classList.remove("on"));
 
-  if(convites[0]) document.getElementById("m1a").classList.add("on");
-  if(convites[1]) document.getElementById("m1b").classList.add("on");
-  if(convites[2]) document.getElementById("m2a").classList.add("on");
-  if(convites[3]) document.getElementById("m2b").classList.add("on");
+  if(data.left) document.getElementById("m1a").classList.add("on");
+  if(data.right) document.getElementById("m1b").classList.add("on");
 
-  if(convites[0] && convites[1]){
-    document.getElementById("m1").classList.add("on");
-
-    document.querySelectorAll('.link')[2].classList.add("on");
-    document.querySelectorAll('.link')[3].classList.add("on");
-  }
-
-  if(convites[2] && convites[3]){
-    document.getElementById("m2").classList.add("on");
-
-    document.querySelectorAll('.link')[4].classList.add("on");
-    document.querySelectorAll('.link')[5].classList.add("on");
-  }
-
-  if(
-    convites[0] && convites[1] &&
-    convites[2] && convites[3]
-  ){
+  if(data.left && data.right){
     document.getElementById("top").classList.add("on");
-
-    document.querySelectorAll('.link')[0].classList.add("on");
-    document.querySelectorAll('.link')[1].classList.add("on");
   }
 
 }
 
-// ===== CONVITES =====
-
-function mostrarConvites(lista){
+function mostrarConvites(){
 
   const div = document.getElementById("convites");
 
-  div.innerHTML = "<h3>Seus convites</h3>";
+  div.innerHTML = "<h3>Sua Matriz</h3>";
 
-  lista.forEach(c => {
+  const a = document.createElement("div");
+  a.className = "convite";
+  a.innerText = data.left ? "A ocupado" : "Vaga A";
 
-    const el = document.createElement("div");
-    el.className = "convite";
-    el.innerText = c;
+  const b = document.createElement("div");
+  b.className = "convite";
+  b.innerText = data.right ? "B ocupado" : "Vaga B";
 
-    el.onclick = () => {
-      navigator.clipboard.writeText(c);
-      el.innerText = "Copiado!";
-      setTimeout(()=> el.innerText = c, 1000);
-    };
-
-    div.appendChild(el);
-  });
+  div.appendChild(a);
+  div.appendChild(b);
 
 }
 
-// ===== BOTÃO + =====
-
 document.getElementById("btn").onclick = async function(){
-
-  const novo = "MM-" + Math.random().toString(36).substring(2,8).toUpperCase();
-
-  convites.push(novo);
 
   const ref = doc(db, "usuarios", userId);
 
-  await updateDoc(ref, {
-    convites: convites
-  });
+  if (!data.left) {
+    await updateDoc(ref, { left: "ocupado" });
+    data.left = "ocupado";
+
+  } else if (!data.right) {
+    await updateDoc(ref, { right: "ocupado" });
+    data.right = "ocupado";
+
+  } else {
+    alert("Você já completou sua matriz");
+    return;
+  }
 
   atualizarTela();
 
