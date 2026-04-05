@@ -79,7 +79,7 @@ circle.on{
 </svg>
 
 <script>
-// animação (mantida)
+// animação
 const nodes = {
   b1:document.getElementById('b1'),
   b2:document.getElementById('b2'),
@@ -148,6 +148,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// 🔥 FUNÇÃO CORRIGIDA
 window.login = async function(){
 
   const params = new URLSearchParams(window.location.search);
@@ -156,17 +157,34 @@ window.login = async function(){
   const email = prompt("Email:");
   const senha = prompt("Senha:");
 
-  // 🔒 BLOQUEIO TOTAL
-  if (!ref) {
-    alert("Cadastro permitido apenas por convite.");
-    return;
-  }
-
   try {
+    // ✅ LOGIN normal
     await signInWithEmailAndPassword(auth, email, senha);
 
   } catch {
 
+    // 🔒 cadastro só com convite
+    if (!ref) {
+      alert("Cadastro permitido apenas por convite.");
+      return;
+    }
+
+    const parentRef = doc(db, "usuarios", ref);
+    const parentSnap = await getDoc(parentRef);
+
+    if (!parentSnap.exists()) {
+      alert("Convite inválido.");
+      return;
+    }
+
+    const parentData = parentSnap.data();
+
+    if (parentData.left && parentData.right) {
+      alert("Convite esgotado.");
+      return;
+    }
+
+    // cria usuário
     const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
 
@@ -178,24 +196,15 @@ window.login = async function(){
       parent: ref
     });
 
-    const parentRef = doc(db, "usuarios", ref);
-    const parentSnap = await getDoc(parentRef);
+    // encaixe
+    if (!parentData.left) {
+      await updateDoc(parentRef, { left: user.uid });
 
-    if (parentSnap.exists()) {
-
-      const parentData = parentSnap.data();
-
-      if (!parentData.left) {
-        await updateDoc(parentRef, { left: user.uid });
-
-      } else if (!parentData.right) {
-        await updateDoc(parentRef, { right: user.uid });
-
-      } else {
-        alert("Matriz do patrocinador já está cheia");
-        return;
-      }
-
+    } else {
+      await updateDoc(parentRef, {
+        right: user.uid,
+        status: "closed"
+      });
     }
 
   }
