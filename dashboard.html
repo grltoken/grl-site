@@ -143,7 +143,15 @@ circle.on{
 </div>
 
 <script>
+
+let progresso = localStorage.getItem("progresso") || 1;
+
 function abrirAula(n){
+
+  if(n > progresso){
+    alert("Complete a aula anterior primeiro.");
+    return;
+  }
 
   const aulas = {
     1: "Você não está aqui apenas para participar. Você está aqui para se posicionar dentro de um network.",
@@ -160,9 +168,19 @@ function abrirAula(n){
 
   document.getElementById("conteudoAula").innerHTML = `
     <p>${aulas[n]}</p>
+    <button onclick="concluir(${n})" style="margin-top:10px;">Concluir aula</button>
     <h3 style="margin-top:20px;">Masterminds.</h3>
   `;
 }
+
+function concluir(n){
+  if(n == progresso){
+    progresso++;
+    localStorage.setItem("progresso", progresso);
+    alert("Aula concluída!");
+  }
+}
+
 </script>
 
 <script type="module">
