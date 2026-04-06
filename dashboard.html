@@ -6,7 +6,7 @@
 <title>Dashboard</title>
 
 <style>
-body{
+body{  
   margin:0;
   font-family: Consolas, monospace;
   background:#fff;
@@ -76,6 +76,28 @@ circle.on{
   height:60px;
   font-size:28px;
 }
+
+/* CURSO */
+#curso{
+  margin-top:40px;
+  max-width:500px;
+  text-align:center;
+}
+
+.menu button{
+  margin:5px;
+  padding:6px;
+  background:#003366;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+
+.aula{
+  border:1px solid #003366;
+  padding:10px;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -97,6 +119,51 @@ circle.on{
 <div id="convites"></div>
 
 <button id="btn">+</button>
+
+<!-- CURSO -->
+<div id="curso">
+
+  <h2>Masterminds</h2>
+
+  <div class="menu">
+    <button onclick="abrirAula(1)">Aula 1</button>
+    <button onclick="abrirAula(2)">Aula 2</button>
+    <button onclick="abrirAula(3)">Aula 3</button>
+    <button onclick="abrirAula(4)">Aula 4</button>
+    <button onclick="abrirAula(5)">Aula 5</button>
+    <button onclick="abrirAula(6)">Aula 6</button>
+    <button onclick="abrirAula(7)">Aula 7</button>
+    <button onclick="abrirAula(8)">Aula 8</button>
+    <button onclick="abrirAula(9)">Aula 9</button>
+    <button onclick="abrirAula(10)">Aula 10</button>
+  </div>
+
+  <div id="conteudoAula" class="aula"></div>
+
+</div>
+
+<script>
+function abrirAula(n){
+
+  const aulas = {
+    1: "Você não está aqui apenas para participar. Você está aqui para se posicionar dentro de um network.",
+    2: "Você não é o produto. Você representa um conceito. Quando o conceito é claro, ele se sustenta.",
+    3: "Você inicia formando sua equipe com duas pessoas. Essa estrutura é o seu ambiente de desenvolvimento.",
+    4: "O crescimento acontece através das pessoas. Você constrói com clareza, direção e acompanhamento.",
+    5: "Você assume o papel de líder. Sua equipe reflete sua condução.",
+    6: "O crescimento vem do network das pessoas. Cada um utiliza sua própria rede.",
+    7: "Organize encontros, alinhe estratégias e mantenha o grupo ativo.",
+    8: "Até completar sua estrutura, a responsabilidade é sua.",
+    9: "Ao completar sua estrutura, você se torna Mastermind.",
+    10: "Sua equipe se torna independente e o processo se replica."
+  };
+
+  document.getElementById("conteudoAula").innerHTML = `
+    <p>${aulas[n]}</p>
+    <h3 style="margin-top:20px;">Masterminds.</h3>
+  `;
+}
+</script>
 
 <script type="module">
 
