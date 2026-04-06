@@ -79,7 +79,7 @@ circle.on{
 </svg>
 
 <script>
-// animação
+// animação (mantida)
 const nodes = {
   b1:document.getElementById('b1'),
   b2:document.getElementById('b2'),
@@ -148,43 +148,43 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 🔥 FUNÇÃO CORRIGIDA
 window.login = async function(){
 
   const params = new URLSearchParams(window.location.search);
   const ref = params.get("ref");
 
+  // 🔒 valida convite ANTES de tudo
+  if (!ref) {
+    alert("Cadastro permitido apenas por convite.");
+    return;
+  }
+
+  const parentRef = doc(db, "usuarios", ref);
+  const parentSnap = await getDoc(parentRef);
+
+  if (!parentSnap.exists()) {
+    alert("Convite inválido.");
+    return;
+  }
+
+  const parentData = parentSnap.data();
+
+  if (parentData.left && parentData.right) {
+    alert("Convite esgotado.");
+    return;
+  }
+
+  // agora pede login
   const email = prompt("Email:");
   const senha = prompt("Senha:");
 
   try {
-    // ✅ LOGIN normal
+    // tenta logar
     await signInWithEmailAndPassword(auth, email, senha);
 
   } catch {
 
-    // 🔒 cadastro só com convite
-    if (!ref) {
-      alert("Cadastro permitido apenas por convite.");
-      return;
-    }
-
-    const parentRef = doc(db, "usuarios", ref);
-    const parentSnap = await getDoc(parentRef);
-
-    if (!parentSnap.exists()) {
-      alert("Convite inválido.");
-      return;
-    }
-
-    const parentData = parentSnap.data();
-
-    if (parentData.left && parentData.right) {
-      alert("Convite esgotado.");
-      return;
-    }
-
-    // cria usuário
+    // cria usuário novo
     const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
 
@@ -196,7 +196,7 @@ window.login = async function(){
       parent: ref
     });
 
-    // encaixe
+    // encaixe na matriz
     if (!parentData.left) {
       await updateDoc(parentRef, { left: user.uid });
 
@@ -206,7 +206,6 @@ window.login = async function(){
         status: "closed"
       });
     }
-
   }
 
   window.location.href = "dashboard.html";
