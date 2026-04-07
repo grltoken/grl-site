@@ -106,14 +106,12 @@ circle.on{
 <div id="topbar">Área do usuário</div>
 
 <svg viewBox="0 0 480 460">
-
 <line x1="240" y1="60" x2="120" y2="200" class="link"/>
 <line x1="240" y1="60" x2="360" y2="200" class="link"/>
 
 <circle id="m1a" cx="120" cy="200" r="7"/>
 <circle id="m1b" cx="360" cy="200" r="7"/>
 <circle id="top" cx="240" cy="60" r="9"/>
-
 </svg>
 
 <div id="convites"></div>
@@ -135,7 +133,6 @@ circle.on{
     <button onclick="abrirAula(7)">Aula 7</button>
     <button onclick="abrirAula(8)">Aula 8</button>
     <button onclick="abrirAula(9)">Aula 9</button>
-    <button onclick="abrirAula(10)">Aula 10</button>
   </div>
 
   <div id="conteudoAula" class="aula"></div>
@@ -154,16 +151,75 @@ function abrirAula(n){
   }
 
   const aulas = {
-    1: "Você não está aqui apenas para participar. Você está aqui para se posicionar dentro de um network.",
-    2: "Você não é o produto. Você representa um conceito. Quando o conceito é claro, ele se sustenta.",
-    3: "Você inicia formando sua equipe com duas pessoas. Essa estrutura é o seu ambiente de desenvolvimento.",
-    4: "O crescimento acontece através das pessoas. Você constrói com clareza, direção e acompanhamento.",
-    5: "Você assume o papel de líder. Sua equipe reflete sua condução.",
-    6: "O crescimento vem do network das pessoas. Cada um utiliza sua própria rede.",
-    7: "Organize encontros, alinhe estratégias e mantenha o grupo ativo.",
-    8: "Até completar sua estrutura, a responsabilidade é sua.",
-    9: "Ao completar sua estrutura, você se torna Mastermind.",
-    10: "Sua equipe se torna independente e o processo se replica."
+
+1: `Liderança não começa na ação.<br><br>
+Começa na percepção.<br><br>
+Antes de alguém seguir você,<br>
+essa pessoa forma uma ideia sobre você.<br><br>
+Se você não constrói essa percepção, alguém constrói.<br><br>
+Você não precisa se impor.<br>
+Você precisa ser percebido.<br><br>
+Comece pela forma como você se apresenta.<br><br>
+Percepção se constrói.`,
+
+2: `O que é acessível demais perde valor.<br><br>
+Valor está na percepção de raridade.<br><br>
+Observe onde você está disponível demais.<br><br>
+Selecione melhor onde e com quem você se envolve.<br><br>
+Você não está aqui para alcançar todos.<br><br>
+Você está aqui para selecionar os melhores.`,
+
+3: `Disponibilidade constante gera comum.<br><br>
+Seleção gera valor.<br><br>
+Selecione quando aparecer.<br><br>
+Selecione com quem falar.<br><br>
+Selecione onde investir sua atenção.<br><br>
+Critério é intenção.`,
+
+4: `As pessoas constroem uma história sobre você.<br><br>
+Mesmo em silêncio.<br><br>
+Você já ocupa um papel.<br><br>
+Observe como é visto.<br><br>
+Ajuste sua comunicação.<br><br>
+Não é sobre contar.<br><br>
+É sobre ocupar o papel certo.`,
+
+5: `As pessoas respondem ao que parece ser.<br><br>
+Você pode ter valor e não ser visto.<br><br>
+Ou ser visto antes de provar.<br><br>
+Defina como quer ser percebido.<br><br>
+Alinhe sua postura.<br><br>
+Você não diz.<br><br>
+Você demonstra.`,
+
+6: `Posicionamento é decisão.<br><br>
+Com quem falar.<br><br>
+O que aceitar.<br><br>
+O que recusar.<br><br>
+Defina quem entra.<br><br>
+Sustente isso.`,
+
+7: `Percepção vem da repetição.<br><br>
+Defina um padrão.<br><br>
+Repita.<br><br>
+Consistência gera reconhecimento.<br><br>
+Isso sustenta valor.`,
+
+8: `Antes de falar, você já impacta.<br><br>
+Postura.<br><br>
+Comportamento.<br><br>
+Atenção.<br><br>
+Observe como você chega.<br><br>
+Ajuste.<br><br>
+Presença é consciência.`,
+
+9: `Autoridade é percepção.<br><br>
+Não é título.<br><br>
+Escolha como quer ser lembrado.<br><br>
+Sustente isso.<br><br>
+Autoridade se constrói.<br><br>
+E se mantém.`
+
   };
 
   document.getElementById("conteudoAula").innerHTML = `
