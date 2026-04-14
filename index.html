@@ -135,8 +135,7 @@ setInterval(run,9000);
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
@@ -149,87 +148,37 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
 async function login(){
 
-  const email = prompt("Email:");
-  const senha = prompt("Senha:");
+  const email = prompt("Email:").trim();
+  const senha = prompt("Senha:").trim();
 
-  // 🔐 LOGIN PRIMEIRO
   try {
     await signInWithEmailAndPassword(auth, email, senha);
     window.location.href = "dashboard.html";
-    return;
-
   } catch (error) {
 
-    // senha errada → não cadastra
+    if (
+      error.code === "auth/user-not-found" ||
+      error.code === "auth/invalid-credential"
+    ) {
+      alert("Cadastro permitido apenas por convite.");
+      return;
+    }
+
     if (error.code === "auth/wrong-password") {
       alert("Senha incorreta.");
       return;
     }
 
-    // email inválido → não cadastra
     if (error.code === "auth/invalid-email") {
       alert("Email inválido.");
       return;
     }
 
-    // qualquer erro diferente de "usuário não existe"
-    if (error.code !== "auth/user-not-found") {
-      alert(error.code);
-      return;
-    }
+    alert(error.code);
   }
-
-  // 🔒 SÓ CHEGA AQUI SE USUÁRIO NÃO EXISTE
-
-  const params = new URLSearchParams(window.location.search);
-  const ref = params.get("ref");
-
-  if (!ref) {
-    alert("Cadastro permitido apenas por convite.");
-    return;
-  }
-
-  const parentRef = doc(db, "usuarios", ref);
-  const parentSnap = await getDoc(parentRef);
-
-  if (!parentSnap.exists()) {
-    alert("Convite inválido.");
-    return;
-  }
-
-  const parentData = parentSnap.data();
-
-  if (parentData.left && parentData.right) {
-    alert("Convite esgotado.");
-    return;
-  }
-
-  // 👤 CADASTRO
-  const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-  const user = userCredential.user;
-
-  await setDoc(doc(db, "usuarios", user.uid), {
-    left: null,
-    right: null,
-    status: "open",
-    createdAt: Date.now(),
-    parent: ref
-  });
-
-  if (!parentData.left) {
-    await updateDoc(parentRef, { left: user.uid });
-  } else {
-    await updateDoc(parentRef, {
-      right: user.uid,
-      status: "closed"
-    });
-  }
-
-  window.location.href = "dashboard.html";
 }
 
 document.getElementById("loginButton").addEventListener("click", login);
