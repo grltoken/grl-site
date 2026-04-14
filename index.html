@@ -46,11 +46,16 @@ svg{
   max-width:420px;
 }
 
+/* 🔥 CORREÇÃO AQUI */
 circle{
   fill:#003366;
   opacity:0;
+
   transform:scale(0.6);
-  transition: all .4s ease;
+  transform-origin:center;
+  transform-box:fill-box;
+
+  transition: opacity .2s ease, transform .2s ease;
 }
 
 circle.on{
@@ -79,7 +84,6 @@ circle.on{
 </svg>
 
 <script>
-// animação (mantida)
 const nodes = {
   b1:document.getElementById('b1'),
   b2:document.getElementById('b2'),
@@ -116,101 +120,25 @@ function run(){
   title.innerHTML="";
 
   setTimeout(()=>{show('b1')},400);
-  setTimeout(()=>{hide('b1');show('m1')},1200);
+
+  setTimeout(()=>{hide('b1')},1100);
+  setTimeout(()=>{show('m1')},1300);
+
   setTimeout(()=>{show('b1');show('b2')},2000);
-  setTimeout(()=>{hide('m1');hide('b1');hide('b2');show('top')},2800);
+
+  setTimeout(()=>{hide('m1');hide('b1');hide('b2')},2600);
+  setTimeout(()=>{show('top')},2800);
+
   setTimeout(()=>{show('m1');show('m2')},3600);
+
   setTimeout(()=>{show('b1');show('b2');show('b3');show('b4')},4500);
+
   setTimeout(()=>{reset()},5800);
   setTimeout(()=>{typeText()},6500);
 }
 
 run();
 setInterval(run,9000);
-</script>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-  authDomain: "grlnetwork.firebaseapp.com",
-  projectId: "grlnetwork",
-  storageBucket: "grlnetwork.firebasestorage.app",
-  messagingSenderId: "887517900417",
-  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-window.login = async function(){
-
-  const params = new URLSearchParams(window.location.search);
-  const ref = params.get("ref");
-
-  // 🔒 valida convite ANTES de tudo
-  if (!ref) {
-    alert("Cadastro permitido apenas por convite.");
-    return;
-  }
-
-  const parentRef = doc(db, "usuarios", ref);
-  const parentSnap = await getDoc(parentRef);
-
-  if (!parentSnap.exists()) {
-    alert("Convite inválido.");
-    return;
-  }
-
-  const parentData = parentSnap.data();
-
-  if (parentData.left && parentData.right) {
-    alert("Convite esgotado.");
-    return;
-  }
-
-  // agora pede login
-  const email = prompt("Email:");
-  const senha = prompt("Senha:");
-
-  try {
-    // tenta logar
-    await signInWithEmailAndPassword(auth, email, senha);
-
-  } catch {
-
-    // cria usuário novo
-    const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-    const user = userCredential.user;
-
-    await setDoc(doc(db, "usuarios", user.uid), {
-      left: null,
-      right: null,
-      status: "open",
-      createdAt: Date.now(),
-      parent: ref
-    });
-
-    // encaixe na matriz
-    if (!parentData.left) {
-      await updateDoc(parentRef, { left: user.uid });
-
-    } else {
-      await updateDoc(parentRef, {
-        right: user.uid,
-        status: "closed"
-      });
-    }
-  }
-
-  window.location.href = "dashboard.html";
-};
-
 </script>
 
 </body>
