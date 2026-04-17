@@ -15,328 +15,169 @@ body{
   align-items:center;
 }
 
+/* BOTÃO MASTERMINDS */
 #topbar{
-  width:100%;
-  text-align:center;
-  padding:10px;
-  font-size:14px;
-  border-bottom:1px solid #003366;
+  margin-top:15px;
 }
 
-svg{
-  width:90%;
-  max-width:420px;
+#topbar button{
+  background:none;
+  border:1px solid #003366;
+  color:#003366;
+  padding:5px 12px;
+  font-size:12px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+#topbar button:hover{
+  background:#003366;
+  color:#fff;
+}
+
+/* MATRIZ */
+#matriz{
   margin-top:30px;
 }
 
+svg{
+  width:260px;
+}
+
+/* LINHAS */
+line{
+  stroke:#e5e5e5;
+  stroke-width:1.5;
+}
+
+/* BASE (menor) */
+.base{
+  r:5;
+}
+
+/* MEIO */
+.meio{
+  r:6.5;
+}
+
+/* TOPO */
+.topo{
+  r:8;
+}
+
+/* ESTADOS */
 circle{
   fill:#003366;
-  opacity:0.2;
-  transition:0.4s;
+  opacity:0.15;
+  transition:0.3s;
 }
 
+/* ocupado */
 circle.on{
-  opacity:1;
+  opacity:0.8;
 }
 
-#top{
+/* você */
+circle.eu{
   fill:gold;
-}
-
-.link{
-  stroke:gold;
-  stroke-width:2;
-  opacity:0.2;
-}
-
-.link.on{
   opacity:1;
+  filter: drop-shadow(0 0 4px rgba(255,215,0,0.6));
 }
 
-#convites{
-  margin-top:20px;
-  text-align:center;
-}
-
-.convite{
-  border:1px solid #003366;
-  padding:8px;
-  margin:5px;
-}
-
-#btn{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:#003366;
-  color:#fff;
-  border:none;
-  border-radius:50%;
-  width:60px;
-  height:60px;
-  font-size:28px;
+/* interação */
+circle:hover{
+  opacity:0.6;
 }
 
 /* CURSO */
 #curso{
-  margin-top:40px;
-  max-width:500px;
-  text-align:center;
+  max-width:600px;
+  width:90%;
+  overflow:hidden;
+  max-height:0;
+  opacity:0;
+  transition:0.5s;
 }
 
-.menu button{
-  margin:5px;
-  padding:6px;
-  background:#003366;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-
-.aula{
-  border:1px solid #003366;
-  padding:10px;
-  margin-top:10px;
+#curso.ativo{
+  max-height:1000px;
+  opacity:1;
+  margin-top:30px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="topbar">Área do usuário</div>
+<!-- BOTÃO -->
+<div id="topbar">
+  <button onclick="toggleCurso()">Masterminds</button>
+</div>
+
+<!-- MATRIZ -->
+<div id="matriz">
 
 <svg viewBox="0 0 480 460">
-<line x1="240" y1="60" x2="120" y2="200" class="link"/>
-<line x1="240" y1="60" x2="360" y2="200" class="link"/>
 
-<circle id="m1a" cx="120" cy="200" r="7"/>
-<circle id="m1b" cx="360" cy="200" r="7"/>
-<circle id="top" cx="240" cy="60" r="9"/>
+<!-- conexões -->
+<line x1="240" y1="60" x2="120" y2="200"/>
+<line x1="240" y1="60" x2="360" y2="200"/>
+
+<line x1="120" y1="200" x2="60" y2="360"/>
+<line x1="120" y1="200" x2="180" y2="360"/>
+
+<line x1="360" y1="200" x2="300" y2="360"/>
+<line x1="360" y1="200" x2="420" y2="360"/>
+
+<!-- base -->
+<circle id="Ma1" class="base" cx="60" cy="360"/>
+<circle id="Ma2" class="base" cx="180" cy="360"/>
+<circle id="Mb1" class="base" cx="300" cy="360"/>
+<circle id="Mb2" class="base" cx="420" cy="360"/>
+
+<!-- meio -->
+<circle id="Ma" class="meio" cx="120" cy="200"/>
+<circle id="Mb" class="meio" cx="360" cy="200"/>
+
+<!-- topo -->
+<circle id="M" class="topo" cx="240" cy="60"/>
+
 </svg>
 
-<div id="convites"></div>
-
-<button id="btn">+</button>
+</div>
 
 <!-- CURSO -->
 <div id="curso">
-
-  <h2>Masterminds</h2>
-
-  <div class="menu">
-    <button onclick="abrirAula(1)">Aula 1</button>
-    <button onclick="abrirAula(2)">Aula 2</button>
-    <button onclick="abrirAula(3)">Aula 3</button>
-    <button onclick="abrirAula(4)">Aula 4</button>
-    <button onclick="abrirAula(5)">Aula 5</button>
-    <button onclick="abrirAula(6)">Aula 6</button>
-    <button onclick="abrirAula(7)">Aula 7</button>
-    <button onclick="abrirAula(8)">Aula 8</button>
-    <button onclick="abrirAula(9)">Aula 9</button>
-  </div>
-
-  <div id="conteudoAula" class="aula"></div>
-
+  <p>Curso aqui</p>
 </div>
 
 <script>
 
-let progresso = localStorage.getItem("progresso") || 1;
+// 🔥 SUA POSIÇÃO
+const minhaPosicao = "Ma1";
 
-function abrirAula(n){
+// ocupação atual
+const ocupados = ["Ma1"]; // só você por enquanto
 
-  if(n > progresso){
-    alert("Complete a aula anterior primeiro.");
-    return;
-  }
+function atualizarMatriz(){
 
-  const aulas = {
+  document.querySelectorAll("circle").forEach(c=>{
+    c.classList.remove("on","eu");
+  });
 
-1: `Liderança não começa na ação.<br><br>
-Começa na percepção.<br><br>
-Antes de alguém seguir você,<br>
-essa pessoa forma uma ideia sobre você.<br><br>
-Se você não constrói essa percepção, alguém constrói.<br><br>
-Você não precisa se impor.<br>
-Você precisa ser percebido.<br><br>
-Comece pela forma como você se apresenta.<br><br>
-Percepção se constrói.`,
+  ocupados.forEach(id=>{
+    document.getElementById(id).classList.add("on");
+  });
 
-2: `O que é acessível demais perde valor.<br><br>
-Valor está na percepção de raridade.<br><br>
-Observe onde você está disponível demais.<br><br>
-Selecione melhor onde e com quem você se envolve.<br><br>
-Você não está aqui para alcançar todos.<br><br>
-Você está aqui para selecionar os melhores.`,
-
-3: `Disponibilidade constante gera comum.<br><br>
-Seleção gera valor.<br><br>
-Selecione quando aparecer.<br><br>
-Selecione com quem falar.<br><br>
-Selecione onde investir sua atenção.<br><br>
-Critério é intenção.`,
-
-4: `As pessoas constroem uma história sobre você.<br><br>
-Mesmo em silêncio.<br><br>
-Você já ocupa um papel.<br><br>
-Observe como é visto.<br><br>
-Ajuste sua comunicação.<br><br>
-Não é sobre contar.<br><br>
-É sobre ocupar o papel certo.`,
-
-5: `As pessoas respondem ao que parece ser.<br><br>
-Você pode ter valor e não ser visto.<br><br>
-Ou ser visto antes de provar.<br><br>
-Defina como quer ser percebido.<br><br>
-Alinhe sua postura.<br><br>
-Você não diz.<br><br>
-Você demonstra.`,
-
-6: `Posicionamento é decisão.<br><br>
-Com quem falar.<br><br>
-O que aceitar.<br><br>
-O que recusar.<br><br>
-Defina quem entra.<br><br>
-Sustente isso.`,
-
-7: `Percepção vem da repetição.<br><br>
-Defina um padrão.<br><br>
-Repita.<br><br>
-Consistência gera reconhecimento.<br><br>
-Isso sustenta valor.`,
-
-8: `Antes de falar, você já impacta.<br><br>
-Postura.<br><br>
-Comportamento.<br><br>
-Atenção.<br><br>
-Observe como você chega.<br><br>
-Ajuste.<br><br>
-Presença é consciência.`,
-
-9: `Autoridade é percepção.<br><br>
-Não é título.<br><br>
-Escolha como quer ser lembrado.<br><br>
-Sustente isso.<br><br>
-Autoridade se constrói.<br><br>
-E se mantém.`
-
-  };
-
-  document.getElementById("conteudoAula").innerHTML = `
-    <p>${aulas[n]}</p>
-    <button onclick="concluir(${n})" style="margin-top:10px;">Concluir aula</button>
-    <h3 style="margin-top:20px;">Masterminds.</h3>
-  `;
-}
-
-function concluir(n){
-  if(n == progresso){
-    progresso++;
-    localStorage.setItem("progresso", progresso);
-    alert("Aula concluída!");
-  }
-}
-
-</script>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-  authDomain: "grlnetwork.firebaseapp.com",
-  projectId: "grlnetwork",
-  storageBucket: "grlnetwork.firebasestorage.app",
-  messagingSenderId: "887517900417",
-  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-let userId = null;
-let data = null;
-
-onAuthStateChanged(auth, async (user) => {
-
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  userId = user.uid;
-
-  const ref = doc(db, "usuarios", userId);
-  const snap = await getDoc(ref);
-
-  if (snap.exists()) {
-    data = snap.data();
-    atualizarTela();
-  }
-
-});
-
-function atualizarTela(){
-  mostrarMatriz();
-  mostrarConvites();
-}
-
-function mostrarMatriz(){
-
-  document.querySelectorAll("circle").forEach(c => c.classList.remove("on"));
-
-  if(data.left) document.getElementById("m1a").classList.add("on");
-  if(data.right) document.getElementById("m1b").classList.add("on");
-
-  if(data.left && data.right){
-    document.getElementById("top").classList.add("on");
-  }
+  document.getElementById(minhaPosicao).classList.add("eu");
 
 }
 
-function mostrarConvites(){
-
-  const div = document.getElementById("convites");
-
-  div.innerHTML = "<h3>Sua Matriz</h3>";
-
-  const a = document.createElement("div");
-  a.className = "convite";
-  a.innerText = data.left ? "A ocupado" : "Vaga A";
-
-  const b = document.createElement("div");
-  b.className = "convite";
-  b.innerText = data.right ? "B ocupado" : "Vaga B";
-
-  div.appendChild(a);
-  div.appendChild(b);
-
+function toggleCurso(){
+  document.getElementById("curso").classList.toggle("ativo");
 }
 
-document.getElementById("btn").onclick = async function(){
-
-  const ref = doc(db, "usuarios", userId);
-
-  if (!data.left) {
-    await updateDoc(ref, { left: "ocupado" });
-    data.left = "ocupado";
-
-  } else if (!data.right) {
-    await updateDoc(ref, { right: "ocupado" });
-    data.right = "ocupado";
-
-  } else {
-    alert("Você já completou sua matriz");
-    return;
-  }
-
-  atualizarTela();
-
-};
+atualizarMatriz();
 
 </script>
 
