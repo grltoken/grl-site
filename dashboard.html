@@ -151,35 +151,80 @@ circle:hover{
   <p>Curso aqui</p>
 </div>
 
-<script>
+<script type="module">
 
-// 🔥 SUA POSIÇÃO
-const minhaPosicao = "Ma1";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ocupação atual
-const ocupados = ["Ma1"]; // só você por enquanto
+const firebaseConfig = {
+  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
+  authDomain: "grlnetwork.firebaseapp.com",
+  projectId: "grlnetwork",
+  storageBucket: "grlnetwork.firebasestorage.app",
+  messagingSenderId: "887517900417",
+  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
+};
 
-function atualizarMatriz(){
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
+function atualizarMatriz(ocupados, minhaPosicao){
   document.querySelectorAll("circle").forEach(c=>{
     c.classList.remove("on","eu");
   });
 
   ocupados.forEach(id=>{
-    document.getElementById(id).classList.add("on");
+    const el = document.getElementById(id);
+    if(el) el.classList.add("on");
   });
 
-  document.getElementById(minhaPosicao).classList.add("eu");
-
+  if(minhaPosicao){
+    const el = document.getElementById(minhaPosicao);
+    if(el) el.classList.add("eu");
+  }
 }
 
 function toggleCurso(){
   document.getElementById("curso").classList.toggle("ativo");
 }
 
-atualizarMatriz();
+window.toggleCurso = toggleCurso;
+
+onAuthStateChanged(auth, async (user)=>{
+
+  if(!user){
+    window.location.href = "index.html";
+    return;
+  }
+
+  try {
+
+    const ref = doc(db, "usuarios", user.uid);
+    const snap = await getDoc(ref);
+
+    if(!snap.exists()){
+      alert("Usuário não encontrado no Firestore.");
+      return;
+    }
+
+    const data = snap.data();
+
+    const ocupados = ["M"];
+
+    if(data.left) ocupados.push("Ma");
+    if(data.right) ocupados.push("Mb");
+
+    atualizarMatriz(ocupados, "M");
+
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao carregar matriz.");
+  }
+
+});
 
 </script>
-
 </body>
 </html>
