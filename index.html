@@ -32,11 +32,6 @@ body{
   cursor:pointer;
 }
 
-#loginBtn button:disabled{
-  opacity:0.5;
-  cursor:not-allowed;
-}
-
 h1{
   color:#003366;
   font-family: Consolas, monospace;
@@ -64,15 +59,6 @@ circle.on{
   opacity:1;
   transform:scale(1);
 }
-
-#aviso{
-  min-height:18px;
-  margin-top:14px;
-  color:#003366;
-  font-family: Consolas, monospace;
-  font-size:12px;
-  text-align:center;
-}
 </style>
 </head>
 
@@ -93,8 +79,6 @@ circle.on{
   <circle id="m2" cx="360" cy="200" r="7"/>
   <circle id="top" cx="240" cy="60" r="8"/>
 </svg>
-
-<div id="aviso"></div>
 
 <script>
 const nodes = {
@@ -164,13 +148,6 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const aviso = document.getElementById("aviso");
-const loginButton = document.getElementById("loginButton");
-
-function setAviso(texto){
-  aviso.textContent = texto || "";
-}
-
 function getParams(){
   const url = new URL(window.location.href);
   return {
@@ -179,64 +156,9 @@ function getParams(){
   };
 }
 
-async function validarConviteAoAbrir(){
-  const { ref, side } = getParams();
-
-  if(!ref || !side){
-    setAviso("");
-    loginButton.disabled = false;
-    return;
-  }
-
-  if(side !== "left" && side !== "right"){
-    setAviso("Convite inválido.");
-    loginButton.disabled = true;
-    return;
-  }
-
-  try{
-    const refSnap = await getDoc(doc(db, "usuarios", ref));
-
-    if(!refSnap.exists()){
-      setAviso("Convite inválido.");
-      loginButton.disabled = true;
-      return;
-    }
-
-    const data = refSnap.data();
-
-    if(data[side]){
-      setAviso("Convite já utilizado.");
-      loginButton.disabled = true;
-      return;
-    }
-
-    setAviso("Convite disponível.");
-    loginButton.disabled = false;
-  }catch(error){
-    console.error("Erro ao validar convite:", error);
-    setAviso("Erro ao validar convite.");
-  }
-}
-
 async function criarContaPorConvite(email, senha, ref, side){
   if(side !== "left" && side !== "right"){
     alert("Convite inválido.");
-    return false;
-  }
-
-  const refDoc = doc(db, "usuarios", ref);
-  const refSnap = await getDoc(refDoc);
-
-  if(!refSnap.exists()){
-    alert("Convite inválido.");
-    return false;
-  }
-
-  const refData = refSnap.data();
-
-  if(refData[side]){
-    alert("Essa vaga já foi preenchida.");
     return false;
   }
 
@@ -272,7 +194,29 @@ async function criarContaPorConvite(email, senha, ref, side){
     return false;
   }
 
+  const refDoc = doc(db, "usuarios", ref);
+
   try {
+    const refSnap = await getDoc(refDoc);
+
+    if(!refSnap.exists()){
+      try{
+        await deleteDoc(doc(db, "usuarios", uid));
+      }catch(e){}
+      alert("Convite inválido.");
+      return false;
+    }
+
+    const refData = refSnap.data();
+
+    if(refData[side]){
+      try{
+        await deleteDoc(doc(db, "usuarios", uid));
+      }catch(e){}
+      alert("Essa vaga já foi preenchida.");
+      return false;
+    }
+
     await setDoc(doc(db, "usuarios", uid), {
       uid: uid,
       email: email,
@@ -289,6 +233,7 @@ async function criarContaPorConvite(email, senha, ref, side){
     });
 
     return true;
+
   } catch (erro) {
     console.error("Erro crítico:", erro);
 
@@ -351,8 +296,6 @@ async function loginOuCadastro(){
 }
 
 document.getElementById("loginButton").addEventListener("click", loginOuCadastro);
-
-validarConviteAoAbrir();
 </script>
 
 </body>
