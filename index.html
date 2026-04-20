@@ -144,6 +144,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -156,6 +157,7 @@ function getParams(){
 }
 
 async function criarContaPorConvite(email, senha, ref, side){
+
   if(side !== "left" && side !== "right"){
     alert("Convite inválido.");
     return;
@@ -176,28 +178,52 @@ async function criarContaPorConvite(email, senha, ref, side){
     return;
   }
 
-  const cred = await createUserWithEmailAndPassword(auth, email, senha);
-  const uid = cred.user.uid;
+  let uid;
 
-  await setDoc(doc(db, "usuarios", uid), {
-    uid: uid,
-    email: email,
-    nome: "",
-    parent: ref,
-    left: null,
-    right: null,
-    status: "open",
-    createdAt: serverTimestamp()
-  });
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, senha);
+    uid = cred.user.uid;
+  } catch (e) {
+    alert("Erro ao criar conta.");
+    return;
+  }
 
-  await updateDoc(refDoc, {
-    [side]: uid
-  });
+  try {
+
+    await setDoc(doc(db, "usuarios", uid), {
+      uid: uid,
+      email: email,
+      nome: "",
+      parent: ref,
+      left: null,
+      right: null,
+      status: "open",
+      createdAt: serverTimestamp()
+    });
+
+    await updateDoc(refDoc, {
+      [side]: uid
+    });
+
+  } catch (erro) {
+
+    console.error("Erro crítico:", erro);
+
+    // 🔥 remove usuário órfão
+    try{
+      await deleteDoc(doc(db, "usuarios", uid));
+    }catch(e){}
+
+    alert("Erro ao posicionar na matriz. Tente novamente.");
+
+    return;
+  }
 
   window.location.href = "dashboard.html";
 }
 
 async function loginOuCadastro(){
+
   const email = prompt("Email:")?.trim();
   const senha = prompt("Senha:")?.trim();
 
@@ -212,65 +238,18 @@ async function loginOuCadastro(){
     window.location.href = "dashboard.html";
     return;
   } catch (error) {
-    const codigo = error.code || "";
 
     if(ref && side){
-      try {
-        await criarContaPorConvite(email, senha, ref, side);
-        return;
-      } catch (cadastroError) {
-        const c = cadastroError.code || "";
-
-        if(c === "auth/email-already-in-use"){
-          alert("Esta conta já existe. Faça login com a senha correta.");
-          return;
-        }
-
-        if(c === "auth/weak-password"){
-          alert("Senha fraca. Use pelo menos 6 caracteres.");
-          return;
-        }
-
-        if(c === "auth/invalid-email"){
-          alert("Email inválido.");
-          return;
-        }
-
-        if(c === "auth/network-request-failed"){
-          alert("Falha de conexão.");
-          return;
-        }
-
-        alert(c || "Erro ao criar conta por convite.");
-        return;
-      }
-    }
-
-    if(
-      codigo === "auth/wrong-password" ||
-      codigo === "auth/invalid-credential" ||
-      codigo === "auth/invalid-login-credentials"
-    ){
-      alert("Email ou senha incorretos.");
+      await criarContaPorConvite(email, senha, ref, side);
       return;
     }
 
-    if(codigo === "auth/user-not-found"){
+    if(error.code === "auth/user-not-found"){
       alert("Cadastro apenas por convite.");
       return;
     }
 
-    if(codigo === "auth/invalid-email"){
-      alert("Email inválido.");
-      return;
-    }
-
-    if(codigo === "auth/network-request-failed"){
-      alert("Falha de conexão.");
-      return;
-    }
-
-    alert(codigo || "Erro no login.");
+    alert("Email ou senha incorretos.");
   }
 }
 
