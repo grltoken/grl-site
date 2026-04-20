@@ -136,15 +136,15 @@ setInterval(run,9000);
 import { auth, db } from "./firebase.js";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  fetchSignInMethodsForEmail
+  createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
   doc,
   getDoc,
   setDoc,
-  updateDoc
+  updateDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 function getParams(){
@@ -176,17 +176,18 @@ async function criarContaPorConvite(email, senha, ref, side){
     return;
   }
 
-  const userCred = await createUserWithEmailAndPassword(auth, email, senha);
-  const uid = userCred.user.uid;
+  const cred = await createUserWithEmailAndPassword(auth, email, senha);
+  const uid = cred.user.uid;
 
   await setDoc(doc(db, "usuarios", uid), {
-    uid,
-    email,
+    uid: uid,
+    email: email,
     nome: "",
     parent: ref,
     left: null,
     right: null,
-    status: "active"
+    status: "open",
+    createdAt: serverTimestamp()
   });
 
   await updateDoc(refDoc, {
@@ -204,64 +205,72 @@ async function loginOuCadastro(){
     return;
   }
 
+  const { ref, side } = getParams();
+
   try {
     await signInWithEmailAndPassword(auth, email, senha);
     window.location.href = "dashboard.html";
     return;
-  } catch (loginError) {
-    const { ref, side } = getParams();
+  } catch (error) {
+    const codigo = error.code || "";
 
-    if(!ref || !side){
-      if(
-        loginError.code === "auth/invalid-credential" ||
-        loginError.code === "auth/wrong-password" ||
-        loginError.code === "auth/invalid-login-credentials"
-      ){
-        alert("Email ou senha incorretos.");
+    if(ref && side){
+      try {
+        await criarContaPorConvite(email, senha, ref, side);
+        return;
+      } catch (cadastroError) {
+        const c = cadastroError.code || "";
+
+        if(c === "auth/email-already-in-use"){
+          alert("Esta conta já existe. Faça login com a senha correta.");
+          return;
+        }
+
+        if(c === "auth/weak-password"){
+          alert("Senha fraca. Use pelo menos 6 caracteres.");
+          return;
+        }
+
+        if(c === "auth/invalid-email"){
+          alert("Email inválido.");
+          return;
+        }
+
+        if(c === "auth/network-request-failed"){
+          alert("Falha de conexão.");
+          return;
+        }
+
+        alert(c || "Erro ao criar conta por convite.");
         return;
       }
+    }
 
-      if(loginError.code === "auth/user-not-found"){
-        alert("Cadastro apenas por convite.");
-        return;
-      }
-
-      if(loginError.code === "auth/invalid-email"){
-        alert("Email inválido.");
-        return;
-      }
-
-      alert(loginError.code);
+    if(
+      codigo === "auth/wrong-password" ||
+      codigo === "auth/invalid-credential" ||
+      codigo === "auth/invalid-login-credentials"
+    ){
+      alert("Email ou senha incorretos.");
       return;
     }
 
-    try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-
-      if(methods.length > 0){
-        alert("Esta conta já existe. Faça login com a senha correta.");
-        return;
-      }
-
-      await criarContaPorConvite(email, senha, ref, side);
-    } catch (cadastroError) {
-      if(cadastroError.code === "auth/email-already-in-use"){
-        alert("Esta conta já existe. Faça login.");
-        return;
-      }
-
-      if(cadastroError.code === "auth/weak-password"){
-        alert("Senha fraca. Use pelo menos 6 caracteres.");
-        return;
-      }
-
-      if(cadastroError.code === "auth/invalid-email"){
-        alert("Email inválido.");
-        return;
-      }
-
-      alert(cadastroError.code);
+    if(codigo === "auth/user-not-found"){
+      alert("Cadastro apenas por convite.");
+      return;
     }
+
+    if(codigo === "auth/invalid-email"){
+      alert("Email inválido.");
+      return;
+    }
+
+    if(codigo === "auth/network-request-failed"){
+      alert("Falha de conexão.");
+      return;
+    }
+
+    alert(codigo || "Erro no login.");
   }
 }
 
