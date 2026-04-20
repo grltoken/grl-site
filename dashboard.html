@@ -6,7 +6,7 @@
 <title>Dashboard</title>
 
 <style>
-body{  
+body{
   margin:0;
   font-family: Consolas, monospace;
   background:#fff;
@@ -15,111 +15,45 @@ body{
   align-items:center;
 }
 
-/* BOTÃO MASTERMINDS */
-#topbar{
-  margin-top:15px;
-}
+#topbar{ margin-top:15px; }
 
 #topbar button{
   background:none;
   border:1px solid #003366;
   color:#003366;
   padding:5px 12px;
-  font-size:12px;
   cursor:pointer;
-  transition:0.2s;
 }
 
-#topbar button:hover{
-  background:#003366;
-  color:#fff;
-}
+svg{ width:260px; }
 
-/* MATRIZ */
-#matriz{
-  margin-top:30px;
-}
+line{ stroke:gold; stroke-width:1.5; }
 
-svg{
-  width:260px;
-}
-
-/* LINHAS */
-line{
-  stroke:#e5e5e5;
-  stroke-width:1.5;
-}
-
-/* BASE (menor) */
-.base{
-  r:5;
-}
-
-/* MEIO */
-.meio{
-  r:6.5;
-}
-
-/* TOPO */
-.topo{
-  r:8;
-}
-
-/* ESTADOS */
 circle{
   fill:#003366;
   opacity:0.15;
-  transition:0.3s;
 }
 
-/* ocupado */
-circle.on{
-  opacity:0.8;
-}
+circle.on{ opacity:0.8; }
+circle.eu{ fill:gold; opacity:1; }
 
-/* você */
-circle.eu{
-  fill:gold;
-  opacity:1;
-  filter: drop-shadow(0 0 4px rgba(255,215,0,0.6));
-}
-
-/* interação */
-circle:hover{
-  opacity:0.6;
-}
-
-/* CURSO */
-#curso{
-  max-width:600px;
-  width:90%;
-  overflow:hidden;
-  max-height:0;
-  opacity:0;
-  transition:0.5s;
-}
-
-#curso.ativo{
-  max-height:1000px;
-  opacity:1;
-  margin-top:30px;
+#info{
+  margin-top:20px;
+  text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<!-- BOTÃO -->
 <div id="topbar">
   <button onclick="toggleCurso()">Masterminds</button>
 </div>
 
-<!-- MATRIZ -->
 <div id="matriz">
 
 <svg viewBox="0 0 480 460">
 
-<!-- conexões -->
 <line x1="240" y1="60" x2="120" y2="200"/>
 <line x1="240" y1="60" x2="360" y2="200"/>
 
@@ -129,68 +63,32 @@ circle:hover{
 <line x1="360" y1="200" x2="300" y2="360"/>
 <line x1="360" y1="200" x2="420" y2="360"/>
 
-<!-- base -->
-<circle id="Ma1" class="base" cx="60" cy="360"/>
-<circle id="Ma2" class="base" cx="180" cy="360"/>
-<circle id="Mb1" class="base" cx="300" cy="360"/>
-<circle id="Mb2" class="base" cx="420" cy="360"/>
+<circle id="Ma1" cx="60" cy="360" r="5"/>
+<circle id="Ma2" cx="180" cy="360" r="5"/>
+<circle id="Mb1" cx="300" cy="360" r="5"/>
+<circle id="Mb2" cx="420" cy="360" r="5"/>
 
-<!-- meio -->
-<circle id="Ma" class="meio" cx="120" cy="200"/>
-<circle id="Mb" class="meio" cx="360" cy="200"/>
+<circle id="Ma" cx="120" cy="200" r="6.5"/>
+<circle id="Mb" cx="360" cy="200" r="6.5"/>
 
-<!-- topo -->
-<circle id="M" class="topo" cx="240" cy="60"/>
+<circle id="M" cx="240" cy="60" r="8"/>
 
 </svg>
 
 </div>
 
-<!-- CURSO -->
-<div id="curso">
-  <p>Curso aqui</p>
-</div>
+<div id="info"></div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-  authDomain: "grlnetwork.firebaseapp.com",
-  projectId: "grlnetwork",
-  storageBucket: "grlnetwork.firebasestorage.app",
-  messagingSenderId: "887517900417",
-  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-function atualizarMatriz(ocupados, minhaPosicao){
-  document.querySelectorAll("circle").forEach(c=>{
-    c.classList.remove("on","eu");
-  });
-
-  ocupados.forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.classList.add("on");
-  });
-
-  if(minhaPosicao){
-    const el = document.getElementById(minhaPosicao);
-    if(el) el.classList.add("eu");
-  }
+function marcar(id, classe){
+  const el = document.getElementById(id);
+  if(el) el.classList.add(classe);
 }
-
-function toggleCurso(){
-  document.getElementById("curso").classList.toggle("ativo");
-}
-
-window.toggleCurso = toggleCurso;
 
 onAuthStateChanged(auth, async (user)=>{
 
@@ -199,32 +97,41 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  try {
+  const snap = await getDoc(doc(db, "usuarios", user.uid));
+  const data = snap.data();
 
-    const ref = doc(db, "usuarios", user.uid);
-    const snap = await getDoc(ref);
+  marcar("M","on");
+  marcar("M","eu");
 
-    if(!snap.exists()){
-      alert("Usuário não encontrado no Firestore.");
-      return;
-    }
+  if(data.left){
+    marcar("Ma","on");
 
-    const data = snap.data();
+    const leftDoc = await getDoc(doc(db,"usuarios",data.left));
+    const leftData = leftDoc.data();
 
-    const ocupados = ["M"];
-
-    if(data.left) ocupados.push("Ma");
-    if(data.right) ocupados.push("Mb");
-
-    atualizarMatriz(ocupados, "M");
-
-  } catch (error) {
-    console.error(error);
-    alert("Erro ao carregar matriz.");
+    if(leftData.left) marcar("Ma1","on");
+    if(leftData.right) marcar("Ma2","on");
   }
+
+  if(data.right){
+    marcar("Mb","on");
+
+    const rightDoc = await getDoc(doc(db,"usuarios",data.right));
+    const rightData = rightDoc.data();
+
+    if(rightData.left) marcar("Mb1","on");
+    if(rightData.right) marcar("Mb2","on");
+  }
+
+  document.getElementById("info").innerHTML = `
+    <p><b>${data.email}</b></p>
+    <p>Convite A: ${window.location.origin}/index.html?ref=${user.uid}&side=left</p>
+    <p>Convite B: ${window.location.origin}/index.html?ref=${user.uid}&side=right</p>
+  `;
 
 });
 
 </script>
+
 </body>
 </html>
