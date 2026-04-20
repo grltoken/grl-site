@@ -134,50 +134,62 @@ setInterval(run,9000);
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { auth, db } from "./firebase.js";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCJDpMURpH3Za0VWvpRL4jLWjDhfBF4C5M",
-  authDomain: "grlnetwork.firebaseapp.com",
-  projectId: "grlnetwork",
-  storageBucket: "grlnetwork.firebasestorage.app",
-  messagingSenderId: "887517900417",
-  appId: "1:887517900417:web:d6bfd784e762bbd6312780"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+function getParams(){
+  const url = new URL(window.location.href);
+  return {
+    ref: url.searchParams.get("ref"),
+    side: url.searchParams.get("side")
+  };
+}
 
 async function login(){
 
-  const email = prompt("Email:").trim();
-  const senha = prompt("Senha:").trim();
+  const email = prompt("Email:")?.trim();
+  const senha = prompt("Senha:")?.trim();
+
+  if(!email || !senha) return;
 
   try {
     await signInWithEmailAndPassword(auth, email, senha);
     window.location.href = "dashboard.html";
   } catch (error) {
 
-    if (
-      error.code === "auth/user-not-found" ||
-      error.code === "auth/invalid-credential"
-    ) {
-      alert("Cadastro permitido apenas por convite.");
+    const { ref, side } = getParams();
+
+    if(!ref || !side){
+      alert("Cadastro apenas por convite.");
       return;
     }
 
-    if (error.code === "auth/wrong-password") {
-      alert("Senha incorreta.");
-      return;
-    }
+    try {
 
-    if (error.code === "auth/invalid-email") {
-      alert("Email inválido.");
-      return;
-    }
+      const userCred = await createUserWithEmailAndPassword(auth, email, senha);
+      const uid = userCred.user.uid;
 
-    alert(error.code);
+      // cria usuário
+      await setDoc(doc(db, "usuarios", uid), {
+        uid,
+        email,
+        parent: ref,
+        left: null,
+        right: null,
+        status: "active"
+      });
+
+      // atualiza quem convidou
+      await updateDoc(doc(db, "usuarios", ref), {
+        [side]: uid
+      });
+
+      window.location.href = "dashboard.html";
+
+    } catch(e){
+      alert(e.code);
+    }
   }
 }
 
