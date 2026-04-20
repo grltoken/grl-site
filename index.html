@@ -71,13 +71,13 @@ circle.on{
 <h1 id="title"></h1>
 
 <svg viewBox="0 0 480 460">
-<circle id="b1" cx="60" cy="360" r="6"/>
-<circle id="b2" cx="180" cy="360" r="6"/>
-<circle id="b3" cx="300" cy="360" r="6"/>
-<circle id="b4" cx="420" cy="360" r="6"/>
-<circle id="m1" cx="120" cy="200" r="7"/>
-<circle id="m2" cx="360" cy="200" r="7"/>
-<circle id="top" cx="240" cy="60" r="8"/>
+  <circle id="b1" cx="60" cy="360" r="6"/>
+  <circle id="b2" cx="180" cy="360" r="6"/>
+  <circle id="b3" cx="300" cy="360" r="6"/>
+  <circle id="b4" cx="420" cy="360" r="6"/>
+  <circle id="m1" cx="120" cy="200" r="7"/>
+  <circle id="m2" cx="360" cy="200" r="7"/>
+  <circle id="top" cx="240" cy="60" r="8"/>
 </svg>
 
 <script>
@@ -102,19 +102,19 @@ function reset(){
 }
 
 function typeText(){
-  title.innerHTML="";
-  let i=0;
+  title.innerHTML = "";
+  let i = 0;
 
-  const interval=setInterval(()=>{
-    title.innerHTML=text.substring(0,i+1)+"|";
+  const interval = setInterval(()=>{
+    title.innerHTML = text.substring(0, i + 1) + "|";
     i++;
-    if(i>=text.length) clearInterval(interval);
+    if(i >= text.length) clearInterval(interval);
   },80);
 }
 
 function run(){
   reset();
-  title.innerHTML="";
+  title.innerHTML = "";
 
   setTimeout(()=>{show('b1')},400);
   setTimeout(()=>{hide('b1')},1100);
@@ -133,10 +133,19 @@ setInterval(run,9000);
 </script>
 
 <script type="module">
-
 import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  fetchSignInMethodsForEmail
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 function getParams(){
   const url = new URL(window.location.href);
@@ -146,55 +155,117 @@ function getParams(){
   };
 }
 
-async function login(){
+async function criarContaPorConvite(email, senha, ref, side){
+  if(side !== "left" && side !== "right"){
+    alert("Convite inválido.");
+    return;
+  }
 
+  const refDoc = doc(db, "usuarios", ref);
+  const refSnap = await getDoc(refDoc);
+
+  if(!refSnap.exists()){
+    alert("Convite inválido.");
+    return;
+  }
+
+  const refData = refSnap.data();
+
+  if(refData[side]){
+    alert("Essa vaga já foi preenchida.");
+    return;
+  }
+
+  const userCred = await createUserWithEmailAndPassword(auth, email, senha);
+  const uid = userCred.user.uid;
+
+  await setDoc(doc(db, "usuarios", uid), {
+    uid,
+    email,
+    nome: "",
+    parent: ref,
+    left: null,
+    right: null,
+    status: "active"
+  });
+
+  await updateDoc(refDoc, {
+    [side]: uid
+  });
+
+  window.location.href = "dashboard.html";
+}
+
+async function loginOuCadastro(){
   const email = prompt("Email:")?.trim();
   const senha = prompt("Senha:")?.trim();
 
-  if(!email || !senha) return;
+  if(!email || !senha){
+    return;
+  }
 
   try {
     await signInWithEmailAndPassword(auth, email, senha);
     window.location.href = "dashboard.html";
-  } catch (error) {
-
+    return;
+  } catch (loginError) {
     const { ref, side } = getParams();
 
     if(!ref || !side){
-      alert("Cadastro apenas por convite.");
+      if(
+        loginError.code === "auth/invalid-credential" ||
+        loginError.code === "auth/wrong-password" ||
+        loginError.code === "auth/invalid-login-credentials"
+      ){
+        alert("Email ou senha incorretos.");
+        return;
+      }
+
+      if(loginError.code === "auth/user-not-found"){
+        alert("Cadastro apenas por convite.");
+        return;
+      }
+
+      if(loginError.code === "auth/invalid-email"){
+        alert("Email inválido.");
+        return;
+      }
+
+      alert(loginError.code);
       return;
     }
 
     try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
 
-      const userCred = await createUserWithEmailAndPassword(auth, email, senha);
-      const uid = userCred.user.uid;
+      if(methods.length > 0){
+        alert("Esta conta já existe. Faça login com a senha correta.");
+        return;
+      }
 
-      // cria usuário
-      await setDoc(doc(db, "usuarios", uid), {
-        uid,
-        email,
-        parent: ref,
-        left: null,
-        right: null,
-        status: "active"
-      });
+      await criarContaPorConvite(email, senha, ref, side);
+    } catch (cadastroError) {
+      if(cadastroError.code === "auth/email-already-in-use"){
+        alert("Esta conta já existe. Faça login.");
+        return;
+      }
 
-      // atualiza quem convidou
-      await updateDoc(doc(db, "usuarios", ref), {
-        [side]: uid
-      });
+      if(cadastroError.code === "auth/weak-password"){
+        alert("Senha fraca. Use pelo menos 6 caracteres.");
+        return;
+      }
 
-      window.location.href = "dashboard.html";
+      if(cadastroError.code === "auth/invalid-email"){
+        alert("Email inválido.");
+        return;
+      }
 
-    } catch(e){
-      alert(e.code);
+      alert(cadastroError.code);
     }
   }
 }
 
-document.getElementById("loginButton").addEventListener("click", login);
-
+document.getElementById("loginButton").addEventListener("click", loginOuCadastro);
 </script>
 
 </body>
