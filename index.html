@@ -32,6 +32,11 @@ body{
   cursor:pointer;
 }
 
+#loginBtn button:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
 h1{
   color:#003366;
   font-family: Consolas, monospace;
@@ -59,6 +64,15 @@ circle.on{
   opacity:1;
   transform:scale(1);
 }
+
+#aviso{
+  min-height:18px;
+  margin-top:14px;
+  color:#003366;
+  font-family: Consolas, monospace;
+  font-size:12px;
+  text-align:center;
+}
 </style>
 </head>
 
@@ -79,6 +93,8 @@ circle.on{
   <circle id="m2" cx="360" cy="200" r="7"/>
   <circle id="top" cx="240" cy="60" r="8"/>
 </svg>
+
+<div id="aviso"></div>
 
 <script>
 const nodes = {
@@ -148,6 +164,13 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+const aviso = document.getElementById("aviso");
+const loginButton = document.getElementById("loginButton");
+
+function setAviso(texto){
+  aviso.textContent = texto || "";
+}
+
 function getParams(){
   const url = new URL(window.location.href);
   return {
@@ -156,11 +179,50 @@ function getParams(){
   };
 }
 
-async function criarContaPorConvite(email, senha, ref, side){
+async function validarConviteAoAbrir(){
+  const { ref, side } = getParams();
+
+  if(!ref || !side){
+    setAviso("");
+    loginButton.disabled = false;
+    return;
+  }
 
   if(side !== "left" && side !== "right"){
-    alert("Convite inválido.");
+    setAviso("Convite inválido.");
+    loginButton.disabled = true;
     return;
+  }
+
+  try{
+    const refSnap = await getDoc(doc(db, "usuarios", ref));
+
+    if(!refSnap.exists()){
+      setAviso("Convite inválido.");
+      loginButton.disabled = true;
+      return;
+    }
+
+    const data = refSnap.data();
+
+    if(data[side]){
+      setAviso("Convite já utilizado.");
+      loginButton.disabled = true;
+      return;
+    }
+
+    setAviso("Convite disponível.");
+    loginButton.disabled = false;
+  }catch(error){
+    console.error("Erro ao validar convite:", error);
+    setAviso("Erro ao validar convite.");
+  }
+}
+
+async function criarContaPorConvite(email, senha, ref, side){
+  if(side !== "left" && side !== "right"){
+    alert("Convite inválido.");
+    return false;
   }
 
   const refDoc = doc(db, "usuarios", ref);
@@ -168,28 +230,49 @@ async function criarContaPorConvite(email, senha, ref, side){
 
   if(!refSnap.exists()){
     alert("Convite inválido.");
-    return;
+    return false;
   }
 
   const refData = refSnap.data();
 
   if(refData[side]){
     alert("Essa vaga já foi preenchida.");
-    return;
+    return false;
   }
 
-  let uid;
+  let uid = null;
 
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, senha);
     uid = cred.user.uid;
   } catch (e) {
-    alert("Erro ao criar conta.");
-    return;
+    console.error("Erro ao criar conta:", e);
+
+    if(e.code === "auth/email-already-in-use"){
+      alert("Este email já está em uso.");
+      return false;
+    }
+
+    if(e.code === "auth/weak-password"){
+      alert("Senha fraca. Use pelo menos 6 caracteres.");
+      return false;
+    }
+
+    if(e.code === "auth/invalid-email"){
+      alert("Email inválido.");
+      return false;
+    }
+
+    if(e.code === "auth/network-request-failed"){
+      alert("Falha de conexão.");
+      return false;
+    }
+
+    alert(e.code || "Erro ao criar conta.");
+    return false;
   }
 
   try {
-
     await setDoc(doc(db, "usuarios", uid), {
       uid: uid,
       email: email,
@@ -205,25 +288,22 @@ async function criarContaPorConvite(email, senha, ref, side){
       [side]: uid
     });
 
+    return true;
   } catch (erro) {
-
     console.error("Erro crítico:", erro);
 
-    // 🔥 remove usuário órfão
     try{
       await deleteDoc(doc(db, "usuarios", uid));
-    }catch(e){}
+    }catch(e){
+      console.error("Erro ao remover usuário órfão:", e);
+    }
 
     alert("Erro ao posicionar na matriz. Tente novamente.");
-
-    return;
+    return false;
   }
-
-  window.location.href = "dashboard.html";
 }
 
 async function loginOuCadastro(){
-
   const email = prompt("Email:")?.trim();
   const senha = prompt("Senha:")?.trim();
 
@@ -240,20 +320,39 @@ async function loginOuCadastro(){
   } catch (error) {
 
     if(ref && side){
-      await criarContaPorConvite(email, senha, ref, side);
+      const ok = await criarContaPorConvite(email, senha, ref, side);
+      if(ok){
+        window.location.href = "dashboard.html";
+      }
       return;
     }
 
-    if(error.code === "auth/user-not-found"){
+    if(
+      error.code === "auth/user-not-found" ||
+      error.code === "auth/invalid-credential" ||
+      error.code === "auth/invalid-login-credentials"
+    ){
       alert("Cadastro apenas por convite.");
       return;
     }
 
-    alert("Email ou senha incorretos.");
+    if(error.code === "auth/wrong-password"){
+      alert("Senha incorreta.");
+      return;
+    }
+
+    if(error.code === "auth/invalid-email"){
+      alert("Email inválido.");
+      return;
+    }
+
+    alert(error.code || "Erro no login.");
   }
 }
 
 document.getElementById("loginButton").addEventListener("click", loginOuCadastro);
+
+validarConviteAoAbrir();
 </script>
 
 </body>
