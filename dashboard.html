@@ -178,7 +178,6 @@ circle.eu{
   </svg>
 </div>
 
-<div id="info"></div>
 
 <div id="convites">
   <p>Convite A</p>
@@ -340,15 +339,7 @@ onAuthStateChanged(auth, async (user)=>{
       (rightLeft ? 1 : 0) +
       (rightRight ? 1 : 0);
 
-    document.getElementById("info").innerHTML = `
-      <p><b>${data.nome || "Usuário"}</b></p>
-      <p>${data.email || ""}</p>
-      <p>Status: ${data.status || "open"}</p>
-      <p>Pai: ${data.parent || "sem pai"}</p>
-      <p>Direto A: ${leftEmail}</p>
-      <p>Direto B: ${rightEmail}</p>
-      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
-    `;
+    
   }catch(error){
     console.error(error);
     alert("Erro ao carregar dashboard.");
