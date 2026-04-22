@@ -145,7 +145,8 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
-  serverTimestamp
+  serverTimestamp,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 function getParams(){
@@ -154,6 +155,31 @@ function getParams(){
     ref: url.searchParams.get("ref"),
     side: url.searchParams.get("side")
   };
+}
+
+async function escolherPrimeiroSlotLivre(matrizRef) {
+  const ordem = ["Ma1", "Ma2", "Mb1", "Mb2"];
+
+  const slotEscolhido = await runTransaction(db, async (transaction) => {
+    const matrizSnap = await transaction.get(matrizRef);
+
+    if (!matrizSnap.exists()) {
+      throw new Error("Matriz não encontrada.");
+    }
+
+    const data = matrizSnap.data();
+    const slots = data.slots || {};
+
+    for (const slot of ordem) {
+      if (!slots[slot]) {
+        return slot;
+      }
+    }
+
+    throw new Error("Sem vagas na base.");
+  });
+
+  return slotEscolhido;
 }
 
 async function criarContaPorConvite(email, senha, ref, side){
@@ -195,7 +221,8 @@ async function criarContaPorConvite(email, senha, ref, side){
   }
 
   const refDoc = doc(db, "usuarios", ref);
-const matrizRef = doc(db, "matrizes", "principal");
+  const matrizRef = doc(db, "matrizes", "principal");
+
   try {
     const refSnap = await getDoc(refDoc);
 
@@ -216,25 +243,31 @@ const matrizRef = doc(db, "matrizes", "principal");
       alert("Essa vaga já foi preenchida.");
       return false;
     }
-const slotEscolhido = await escolherPrimeiroSlotLivre(matrizRef);
+
+    const slotEscolhido = await escolherPrimeiroSlotLivre(matrizRef);
+
     await setDoc(doc(db, "usuarios", uid), {
       uid: uid,
       email: email,
       nome: "",
       parent: ref,
+      side: side,
       left: null,
       right: null,
       status: "open",
-      createdAt: serverTimestamp()
-   matrizId: "principal",
-slot: slotEscolhido });
+      createdAt: serverTimestamp(),
+      matrizId: "principal",
+      slot: slotEscolhido
+    });
 
     await updateDoc(refDoc, {
       [side]: uid
     });
-await updateDoc(matrizRef, {
-  [slots.${slotEscolhido}]: uid
-});
+
+    await updateDoc(matrizRef, {
+      [`slots.${slotEscolhido}`]: uid
+    });
+
     return true;
 
   } catch (erro) {
@@ -297,31 +330,7 @@ async function loginOuCadastro(){
     alert(error.code || "Erro no login.");
   }
 }
-async function escolherPrimeiroSlotLivre(matrizRef) {
 
-  const ordem = ["Maa", "Mab", "Mba", "Mbb"];
-
-  const slotEscolhido = await runTransaction(db, async (transaction) => {
-
-    const matrizSnap = await transaction.get(matrizRef);
-
-    if (!matrizSnap.exists()) {
-      throw new Error("Matriz não encontrada.");
-    }
-
-    const slots = matrizSnap.data().slots || {};
-
-    for (const slot of ordem) {
-      if (!slots[slot]) {
-        return slot;
-      }
-    }
-
-    throw new Error("Sem vagas na base.");
-  });
-
-  return slotEscolhido;
-}
 document.getElementById("loginButton").addEventListener("click", loginOuCadastro);
 </script>
 
