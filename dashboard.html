@@ -49,14 +49,12 @@ svg{
   max-width:90vw;
 }
 
-/* linhas */
 line{
   stroke:gold;
   stroke-width:1.5;
   opacity:0.85;
 }
 
-/* círculos */
 circle{
   fill:#003366;
   opacity:0.15;
@@ -71,21 +69,6 @@ circle.eu{
   fill:gold;
   opacity:1;
   filter: drop-shadow(0 0 4px rgba(255,215,0,0.6));
-}
-
-#info{
-  width:90%;
-  max-width:700px;
-  margin-top:25px;
-  text-align:center;
-  color:#003366;
-  font-size:13px;
-  line-height:1.6;
-  word-break:break-word;
-}
-
-#info p{
-  margin:8px 0;
 }
 
 #convites{
@@ -166,10 +149,10 @@ circle.eu{
     <line x1="360" y1="200" x2="300" y2="360"/>
     <line x1="360" y1="200" x2="420" y2="360"/>
 
-    <circle id="Maa" cx="60" cy="360" r="5"/>
-<circle id="Mab" cx="180" cy="360" r="5"/>
-<circle id="Mba" cx="300" cy="360" r="5"/>
-<circle id="Mbb" cx="420" cy="360" r="5"/>
+    <circle id="Ma1" cx="60" cy="360" r="5"/>
+    <circle id="Ma2" cx="180" cy="360" r="5"/>
+    <circle id="Mb1" cx="300" cy="360" r="5"/>
+    <circle id="Mb2" cx="420" cy="360" r="5"/>
 
     <circle id="Ma" cx="120" cy="200" r="6.5"/>
     <circle id="Mb" cx="360" cy="200" r="6.5"/>
@@ -177,7 +160,6 @@ circle.eu{
     <circle id="M" cx="240" cy="60" r="8"/>
   </svg>
 </div>
-
 
 <div id="convites">
   <p>Convite A</p>
@@ -272,74 +254,28 @@ onAuthStateChanged(auth, async (user)=>{
     }
 
     const data = userSnap.data();
-const temLeft = !!data.left;
-const temRight = !!data.right;
 
-// BASE
-if (!temLeft || !temRight) {
-  marcar("Ma1", "on");
-  marcar("Ma1", "eu");
+    const matrizId = data.matrizId || "principal";
+    const matrizRef = doc(db, "matrizes", matrizId);
+    const matrizSnap = await getDoc(matrizRef);
 
-  if (temLeft) {
-    marcar("Ma2", "on");
-  }
-}
-
-// INTERMEDIÁRIO
-if (temLeft && temRight) {
-  marcar("Ma", "on");
-  marcar("Ma", "eu");
-
-  marcar("Ma1", "on");
-  marcar("Ma2", "on");
-}
-
-    let leftEmail = "-";
-    let rightEmail = "-";
-    let leftLeft = false;
-    let leftRight = false;
-    let rightLeft = false;
-    let rightRight = false;
-
-    if(data.left){
-      marcar("Ma", "on");
-
-      const leftSnap = await getDoc(doc(db, "usuarios", data.left));
-      if(leftSnap.exists()){
-        const leftData = leftSnap.data();
-        leftEmail = leftData.email || data.left;
-
-        if(leftData.left){
-          marcar("Ma1", "on");
-          leftLeft = true;
-        }
-
-        if(leftData.right){
-          marcar("Ma2", "on");
-          leftRight = true;
-        }
-      }
+    if(!matrizSnap.exists()){
+      alert("Matriz não encontrada.");
+      return;
     }
 
-    if(data.right){
-      marcar("Mb", "on");
+    const matriz = matrizSnap.data();
+    const slots = matriz.slots || {};
 
-      const rightSnap = await getDoc(doc(db, "usuarios", data.right));
-      if(rightSnap.exists()){
-        const rightData = rightSnap.data();
-        rightEmail = rightData.email || data.right;
-
-        if(rightData.left){
-          marcar("Mb1", "on");
-          rightLeft = true;
-        }
-
-        if(rightData.right){
-          marcar("Mb2", "on");
-          rightRight = true;
-        }
+    Object.entries(slots).forEach(([slot, uid]) => {
+      if(uid){
+        marcar(slot, "on");
       }
-    }
+
+      if(uid === user.uid){
+        marcar(slot, "eu");
+      }
+    });
 
     const baseUrl = window.location.origin + "/index.html";
     const conviteLeft = `${baseUrl}?ref=${user.uid}&side=left`;
@@ -348,16 +284,6 @@ if (temLeft && temRight) {
     document.getElementById("conviteLeft").value = conviteLeft;
     document.getElementById("conviteRight").value = conviteRight;
 
-    const totalFechados =
-      1 +
-      (data.left ? 1 : 0) +
-      (data.right ? 1 : 0) +
-      (leftLeft ? 1 : 0) +
-      (leftRight ? 1 : 0) +
-      (rightLeft ? 1 : 0) +
-      (rightRight ? 1 : 0);
-
-    
   }catch(error){
     console.error(error);
     alert("Erro ao carregar dashboard.");
