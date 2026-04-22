@@ -297,7 +297,31 @@ async function loginOuCadastro(){
     alert(error.code || "Erro no login.");
   }
 }
+async function escolherPrimeiroSlotLivre(matrizRef) {
 
+  const ordem = ["Maa", "Mab", "Mba", "Mbb"];
+
+  const slotEscolhido = await runTransaction(db, async (transaction) => {
+
+    const matrizSnap = await transaction.get(matrizRef);
+
+    if (!matrizSnap.exists()) {
+      throw new Error("Matriz não encontrada.");
+    }
+
+    const slots = matrizSnap.data().slots || {};
+
+    for (const slot of ordem) {
+      if (!slots[slot]) {
+        return slot;
+      }
+    }
+
+    throw new Error("Sem vagas na base.");
+  });
+
+  return slotEscolhido;
+}
 document.getElementById("loginButton").addEventListener("click", loginOuCadastro);
 </script>
 
