@@ -272,9 +272,27 @@ onAuthStateChanged(auth, async (user)=>{
     }
 
     const data = userSnap.data();
+const temLeft = !!data.left;
+const temRight = !!data.right;
 
-    marcar("M", "on");
-    marcar("M", "eu");
+// BASE
+if (!temLeft || !temRight) {
+  marcar("Ma1", "on");
+  marcar("Ma1", "eu");
+
+  if (temLeft) {
+    marcar("Ma2", "on");
+  }
+}
+
+// INTERMEDIÁRIO
+if (temLeft && temRight) {
+  marcar("Ma", "on");
+  marcar("Ma", "eu");
+
+  marcar("Ma1", "on");
+  marcar("Ma2", "on");
+}
 
     let leftEmail = "-";
     let rightEmail = "-";
