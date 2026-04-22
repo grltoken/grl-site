@@ -195,7 +195,7 @@ async function criarContaPorConvite(email, senha, ref, side){
   }
 
   const refDoc = doc(db, "usuarios", ref);
-
+const matrizRef = doc(db, "matrizes", "principal");
   try {
     const refSnap = await getDoc(refDoc);
 
@@ -216,7 +216,7 @@ async function criarContaPorConvite(email, senha, ref, side){
       alert("Essa vaga já foi preenchida.");
       return false;
     }
-
+const slotEscolhido = await escolherPrimeiroSlotLivre(matrizRef);
     await setDoc(doc(db, "usuarios", uid), {
       uid: uid,
       email: email,
@@ -226,12 +226,15 @@ async function criarContaPorConvite(email, senha, ref, side){
       right: null,
       status: "open",
       createdAt: serverTimestamp()
-    });
+   matrizId: "principal",
+slot: slotEscolhido });
 
     await updateDoc(refDoc, {
       [side]: uid
     });
-
+await updateDoc(matrizRef, {
+  [slots.${slotEscolhido}]: uid
+});
     return true;
 
   } catch (erro) {
