@@ -326,13 +326,16 @@ onAuthStateChanged(auth, async (user)=>{
       `;
     }
 
-  }catch(error){
-    console.error("ERRO DASHBOARD:", error);
+ }catch(error){
+  console.error("ERRO DASHBOARD:", error);
 
-    const info = document.getElementById("info");
-    if(info){
-      info.innerHTML = `<p>Erro ao carregar dashboard.</p>`;
-    }
+  const info = document.getElementById("info");
+  if(info){
+    info.innerHTML = `
+      <p><b>Erro ao carregar dashboard</b></p>
+      <p>${error.message || error}</p>
+    `;
   }
+}
 });
 </script>
