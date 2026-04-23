@@ -49,14 +49,12 @@ svg{
   max-width:90vw;
 }
 
-/* linhas */
 line{
   stroke:gold;
   stroke-width:1.5;
   opacity:0.85;
 }
 
-/* círculos */
 circle{
   fill:#003366;
   opacity:0.15;
@@ -112,6 +110,26 @@ circle.eu{
   background:#fff;
 }
 
+.convite-actions{
+  margin-top:6px;
+  margin-bottom:12px;
+}
+
+.convite-actions button{
+  background:none;
+  border:1px solid #003366;
+  color:#003366;
+  padding:6px 10px;
+  font-size:11px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.convite-actions button:hover{
+  background:#003366;
+  color:#fff;
+}
+
 #curso{
   max-width:700px;
   width:90%;
@@ -157,7 +175,6 @@ circle.eu{
 
 <div id="matriz">
   <svg viewBox="0 0 480 460">
-
     <line x1="240" y1="60" x2="120" y2="200"/>
     <line x1="240" y1="60" x2="360" y2="200"/>
 
@@ -174,7 +191,6 @@ circle.eu{
 
     <circle id="ma" cx="120" cy="200" r="6.5"/>
     <circle id="mb" cx="360" cy="200" r="6.5"/>
-
     <circle id="m" cx="240" cy="60" r="8"/>
   </svg>
 </div>
@@ -184,9 +200,15 @@ circle.eu{
 <div id="convites">
   <p>Convite A</p>
   <input id="conviteLeft" readonly>
+  <div class="convite-actions">
+    <button onclick="copiarConvite('conviteLeft', this)">Copiar Convite A</button>
+  </div>
 
   <p>Convite B</p>
   <input id="conviteRight" readonly>
+  <div class="convite-actions">
+    <button onclick="copiarConvite('conviteRight', this)">Copiar Convite B</button>
+  </div>
 </div>
 
 <div id="seguranca">
@@ -211,9 +233,21 @@ function limparMatriz(){
 }
 
 function marcar(slot, uid, meuUid){
-  const el = document.getElementById(slot);
+  const slotAlias = {
+    top: "m",
+    m1: "ma",
+    m2: "mb",
+    b1: "maa",
+    b2: "mab",
+    b3: "mba",
+    b4: "mbb"
+  };
+
+  const slotId = slotAlias[slot] || slot;
+  const el = document.getElementById(slotId);
   if(!el){
-    throw new Error("slot-html:" + slot);
+    console.warn("slot-html-nao-encontrado:", slot);
+    return;
   }
 
   el.classList.add("on");
@@ -228,6 +262,35 @@ function toggleCurso(){
   if(curso) curso.classList.toggle("ativo");
 }
 
+async function copiarConvite(inputId, botao){
+  const input = document.getElementById(inputId);
+  if(!input || !input.value){
+    return;
+  }
+
+  const textoOriginal = botao ? botao.textContent : "";
+
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(input.value);
+    }else{
+      input.select();
+      input.setSelectionRange(0, input.value.length);
+      document.execCommand("copy");
+      window.getSelection().removeAllRanges();
+    }
+
+    if(botao){
+      botao.textContent = "Copiado!";
+      setTimeout(()=>{
+        botao.textContent = textoOriginal;
+      }, 1200);
+    }
+  }catch(error){
+    console.error("Erro ao copiar convite:", error);
+  }
+}
+
 async function logout(){
   try{
     await signOut(auth);
@@ -239,6 +302,7 @@ async function logout(){
 
 window.toggleCurso = toggleCurso;
 window.logout = logout;
+window.copiarConvite = copiarConvite;
 
 let timeoutInatividade;
 
@@ -267,15 +331,12 @@ onAuthStateChanged(auth, async (user)=>{
   const inputRight = document.getElementById("conviteRight");
 
   try{
-    if(info) info.innerHTML = "<p>etapa 1</p>";
+    if(info) info.innerHTML = "<p>Carregando...</p>";
 
     if(!user){
-      if(info) info.innerHTML = "<p>etapa auth-sem-user</p>";
       window.location.href = "index.html";
       return;
     }
-
-    if(info) info.innerHTML = "<p>etapa 2</p>";
 
     limparMatriz();
 
@@ -287,49 +348,26 @@ onAuthStateChanged(auth, async (user)=>{
     inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
     inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
 
-    info.innerHTML = "<p>etapa 3</p>";
-
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
-
-    if(!userSnap.exists()){
-      throw new Error("firestore-user");
-    }
-
-    info.innerHTML = "<p>etapa 4</p>";
+    if(!userSnap.exists()) throw new Error("firestore-user");
 
     const data = userSnap.data();
     const matrizId = data.matrizId || "principal";
 
     const matrizRef = doc(db, "MATRIZES", matrizId);
     const matrizSnap = await getDoc(matrizRef);
-
-    if(!matrizSnap.exists()){
-      throw new Error("firestore-matriz:" + matrizId);
-    }
-
-    info.innerHTML = "<p>etapa 5</p>";
+    if(!matrizSnap.exists()) throw new Error("firestore-matriz:" + matrizId);
 
     const matrizData = matrizSnap.data();
     const slots = matrizData.slots || {};
 
     Object.entries(slots).forEach(([slot, uid])=>{
       if(uid){
-        const el = document.getElementById(slot);
-        if(!el){
-          throw new Error("slot-html:" + slot);
-        }
-
-        el.classList.add("on");
-
-        if(uid === user.uid){
-          el.classList.add("eu");
-        }
+        marcar(slot, uid, user.uid);
       }
     });
 
-    info.innerHTML = "<p>etapa 6</p>";
-
     const totalFechados = Object.values(slots).filter(Boolean).length;
 
     info.innerHTML = `
@@ -340,32 +378,9 @@ onAuthStateChanged(auth, async (user)=>{
       <p>Matriz: ${matrizId}</p>
       <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
     `;
-
   }catch(error){
     console.error("ERRO DASHBOARD:", error);
 
-    if(info){
-      info.innerHTML = `
-        <p><b>Erro ao carregar dashboard</b></p>
-        <p>${error.message || error}</p>
-      `;
-    }
-  }
-});
-
-    const totalFechados = Object.values(slots).filter(Boolean).length;
-
-    info.innerHTML = `
-      <p><b>${data.nome || "Usuário"}</b></p>
-      <p>${data.email || ""}</p>
-      <p>Status: ${data.status || "open"}</p>
-      <p>Pai: ${data.parent || "sem pai"}</p>
-      <p>Matriz: ${matrizId}</p>
-      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
-    `;
-
-  }catch(error){
-    console.error("ERRO DASHBOARD:", error);
     if(info){
       info.innerHTML = `
         <p><b>Erro ao carregar dashboard</b></p>
@@ -375,3 +390,5 @@ onAuthStateChanged(auth, async (user)=>{
   }
 });
 </script>
+</body>
+</html>
