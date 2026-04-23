@@ -267,11 +267,15 @@ onAuthStateChanged(auth, async (user)=>{
   const inputRight = document.getElementById("conviteRight");
 
   try{
-    if(info) info.innerHTML = "<p>iniciando...</p>";
+    if(info) info.innerHTML = "<p>etapa 1</p>";
 
     if(!user){
-      throw new Error("auth-sem-user");
+      if(info) info.innerHTML = "<p>etapa auth-sem-user</p>";
+      window.location.href = "index.html";
+      return;
     }
+
+    if(info) info.innerHTML = "<p>etapa 2</p>";
 
     limparMatriz();
 
@@ -279,12 +283,20 @@ onAuthStateChanged(auth, async (user)=>{
     if(!inputRight) throw new Error("html-conviteRight");
     if(!info) throw new Error("html-info");
 
+    const baseUrl = window.location.origin + "/index.html";
+    inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
+    inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
+
+    info.innerHTML = "<p>etapa 3</p>";
+
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
 
     if(!userSnap.exists()){
       throw new Error("firestore-user");
     }
+
+    info.innerHTML = "<p>etapa 4</p>";
 
     const data = userSnap.data();
     const matrizId = data.matrizId || "principal";
@@ -296,18 +308,50 @@ onAuthStateChanged(auth, async (user)=>{
       throw new Error("firestore-matriz:" + matrizId);
     }
 
+    info.innerHTML = "<p>etapa 5</p>";
+
     const matrizData = matrizSnap.data();
     const slots = matrizData.slots || {};
 
-    const baseUrl = window.location.origin + "/index.html";
-    inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
-    inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
-
     Object.entries(slots).forEach(([slot, uid])=>{
       if(uid){
-        marcar(slot, uid, user.uid);
+        const el = document.getElementById(slot);
+        if(!el){
+          throw new Error("slot-html:" + slot);
+        }
+
+        el.classList.add("on");
+
+        if(uid === user.uid){
+          el.classList.add("eu");
+        }
       }
     });
+
+    info.innerHTML = "<p>etapa 6</p>";
+
+    const totalFechados = Object.values(slots).filter(Boolean).length;
+
+    info.innerHTML = `
+      <p><b>${data.nome || "Usuário"}</b></p>
+      <p>${data.email || ""}</p>
+      <p>Status: ${data.status || "open"}</p>
+      <p>Pai: ${data.parent || "sem pai"}</p>
+      <p>Matriz: ${matrizId}</p>
+      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
+    `;
+
+  }catch(error){
+    console.error("ERRO DASHBOARD:", error);
+
+    if(info){
+      info.innerHTML = `
+        <p><b>Erro ao carregar dashboard</b></p>
+        <p>${error.message || error}</p>
+      `;
+    }
+  }
+});
 
     const totalFechados = Object.values(slots).filter(Boolean).length;
 
