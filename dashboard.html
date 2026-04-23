@@ -222,7 +222,8 @@ function marcar(slot, uid, meuUid){
 }
 
 function toggleCurso(){
-  document.getElementById("curso").classList.toggle("ativo");
+  const curso = document.getElementById("curso");
+  if(curso) curso.classList.toggle("ativo");
 }
 
 async function logout(){
@@ -230,8 +231,7 @@ async function logout(){
     await signOut(auth);
     window.location.href = "index.html";
   }catch(error){
-    alert("Erro ao sair.");
-    console.error(error);
+    console.error("Erro ao sair:", error);
   }
 }
 
@@ -246,10 +246,9 @@ function resetTimer(){
   timeoutInatividade = setTimeout(async ()=>{
     try{
       await signOut(auth);
-      alert("Sessão encerrada por segurança.");
       window.location.href = "index.html";
     }catch(error){
-      console.error(error);
+      console.error("Erro ao encerrar sessão:", error);
     }
   }, 10 * 60 * 1000);
 }
@@ -260,135 +259,80 @@ function resetTimer(){
 
 resetTimer();
 
-async function pegarNomeOuEmail(uid){
-  if(!uid) return "-";
-
-  try{
-    const snap = await getDoc(doc(db, "usuarios", uid));
-    if(!snap.exists()) return uid;
-
-    const data = snap.data();
-    return data.nome || data.email || uid;
-  }catch{
-    return uid;
-  }
-}
 onAuthStateChanged(auth, async (user)=>{
-  
-  alert("Dashboard iniciou"); // 👈 COLOCA AQUI
-
   if(!user){
     window.location.href = "index.html";
     return;
   }
 
-  }
-
   try{
     limparMatriz();
 
-    console.log("1 user:", user);
-
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
-    console.log("2 userSnap.exists:", userSnap.exists());
 
     if(!userSnap.exists()){
-      throw new Error("user");
+      await signOut(auth);
+      window.location.href = "index.html";
+      return;
     }
 
     const data = userSnap.data();
-    console.log("3 data:", data);
-
     const matrizId = data.matrizId || "principal";
-    console.log("4 matrizId:", matrizId);
 
     const matrizRef = doc(db, "MATRIZES", matrizId);
     const matrizSnap = await getDoc(matrizRef);
-    console.log("5 matrizSnap.exists:", matrizSnap.exists());
 
     if(!matrizSnap.exists()){
-      throw new Error("matriz");
+      document.getElementById("info").innerHTML = `
+        <p><b>${data.nome || "Usuário"}</b></p>
+        <p>Matriz não encontrada: ${matrizId}</p>
+      `;
+      return;
     }
 
     const matrizData = matrizSnap.data();
-    console.log("6 matrizData:", matrizData);
-
     const slots = matrizData.slots || {};
-    console.log("7 slots:", slots);
 
     Object.entries(slots).forEach(([slot, uid])=>{
-      console.log("8 slot:", slot, "uid:", uid);
       if(uid){
         marcar(slot, uid, user.uid);
       }
     });
 
     const totalFechados = Object.values(slots).filter(Boolean).length;
-    console.log("9 totalFechados:", totalFechados);
-
     const baseUrl = window.location.origin + "/index.html";
 
     const inputLeft = document.getElementById("conviteLeft");
     const inputRight = document.getElementById("conviteRight");
     const info = document.getElementById("info");
 
-    if(!inputLeft) throw new Error("conviteLeft");
-    if(!inputRight) throw new Error("conviteRight");
-    if(!info) throw new Error("info");
+    if(inputLeft){
+      inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
+    }
 
-    inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
-    inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
+    if(inputRight){
+      inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
+    }
 
-    info.innerHTML = `
-      <p><b>${data.nome || "Usuário"}</b></p>
-      <p>${data.email || ""}</p>
-      <p>Status: ${data.status || "open"}</p>
-      <p>Pai: ${data.parent || "sem pai"}</p>
-      <p>Matriz: ${matrizId}</p>
-      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
-    `;
-
-    console.log("10 dashboard ok");
-
-  }catch(error){
-    console.error("ERRO DASHBOARD REAL:", error);
-    alert("Erro ao carregar dashboard: " + (error.message || error));
-  }
-});
-
-    const leftUid = slots.ma || null;
-    const rightUid = slots.mb || null;
-
-    const leftNome = await pegarNomeOuEmail(leftUid);
-    const rightNome = await pegarNomeOuEmail(rightUid);
-
-    const totalFechados = Object.values(slots).filter(Boolean).length;
-
-    const baseUrl = window.location.origin + "/index.html";
-    const conviteLeft = `${baseUrl}?ref=${user.uid}&side=left`;
-    const conviteRight = `${baseUrl}?ref=${user.uid}&side=right`;
-
-    document.getElementById("conviteLeft").value = conviteLeft;
-    document.getElementById("conviteRight").value = conviteRight;
-
-    document.getElementById("info").innerHTML = `
-      <p><b>${data.nome || "Usuário"}</b></p>
-      <p>${data.email || ""}</p>
-      <p>Status: ${data.status || "open"}</p>
-      <p>Pai: ${data.parent || "sem pai"}</p>
-      <p>Direto A: ${leftNome}</p>
-      <p>Direto B: ${rightNome}</p>
-      <p>Matriz: ${matrizId}</p>
-      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
-    `;
+    if(info){
+      info.innerHTML = `
+        <p><b>${data.nome || "Usuário"}</b></p>
+        <p>${data.email || ""}</p>
+        <p>Status: ${data.status || "open"}</p>
+        <p>Pai: ${data.parent || "sem pai"}</p>
+        <p>Matriz: ${matrizId}</p>
+        <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
+      `;
+    }
 
   }catch(error){
     console.error("ERRO DASHBOARD:", error);
-    alert("Erro ao carregar dashboard.");
+
+    const info = document.getElementById("info");
+    if(info){
+      info.innerHTML = `<p>Erro ao carregar dashboard.</p>`;
+    }
   }
 });
 </script>
-
-</body>
-</html>
