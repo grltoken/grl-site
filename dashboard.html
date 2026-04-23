@@ -108,7 +108,7 @@ onAuthStateChanged(auth, async(user)=>{
 
     const data = userSnap.data();
 
-    const matrizRef = doc(db,"matrizes", data.matrizId || "principal");
+    const matrizRef = doc(db,"MATRIZES", data.matrizId || "principal");
     const matrizSnap = await getDoc(matrizRef);
 
     if(!matrizSnap.exists()) throw "matriz";
