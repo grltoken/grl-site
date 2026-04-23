@@ -283,35 +283,75 @@ onAuthStateChanged(auth, async (user)=>{
   try{
     limparMatriz();
 
+    console.log("1 user:", user);
+
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
+    console.log("2 userSnap.exists:", userSnap.exists());
 
     if(!userSnap.exists()){
-      alert("Usuário não encontrado.");
-      await signOut(auth);
-      window.location.href = "index.html";
-      return;
+      throw new Error("user");
     }
 
     const data = userSnap.data();
+    console.log("3 data:", data);
 
     const matrizId = data.matrizId || "principal";
+    console.log("4 matrizId:", matrizId);
+
     const matrizRef = doc(db, "MATRIZES", matrizId);
     const matrizSnap = await getDoc(matrizRef);
+    console.log("5 matrizSnap.exists:", matrizSnap.exists());
 
     if(!matrizSnap.exists()){
-      alert("Matriz não encontrada.");
-      return;
+      throw new Error("matriz");
     }
 
     const matrizData = matrizSnap.data();
+    console.log("6 matrizData:", matrizData);
+
     const slots = matrizData.slots || {};
+    console.log("7 slots:", slots);
 
     Object.entries(slots).forEach(([slot, uid])=>{
+      console.log("8 slot:", slot, "uid:", uid);
       if(uid){
         marcar(slot, uid, user.uid);
       }
     });
+
+    const totalFechados = Object.values(slots).filter(Boolean).length;
+    console.log("9 totalFechados:", totalFechados);
+
+    const baseUrl = window.location.origin + "/index.html";
+
+    const inputLeft = document.getElementById("conviteLeft");
+    const inputRight = document.getElementById("conviteRight");
+    const info = document.getElementById("info");
+
+    if(!inputLeft) throw new Error("conviteLeft");
+    if(!inputRight) throw new Error("conviteRight");
+    if(!info) throw new Error("info");
+
+    inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
+    inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
+
+    info.innerHTML = `
+      <p><b>${data.nome || "Usuário"}</b></p>
+      <p>${data.email || ""}</p>
+      <p>Status: ${data.status || "open"}</p>
+      <p>Pai: ${data.parent || "sem pai"}</p>
+      <p>Matriz: ${matrizId}</p>
+      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
+    `;
+
+    console.log("10 dashboard ok");
+
+  }catch(error){
+    console.error("ERRO DASHBOARD REAL:", error);
+    alert("Erro ao carregar dashboard: " + (error.message || error));
+  }
+});
 
     const leftUid = slots.ma || null;
     const rightUid = slots.mb || null;
