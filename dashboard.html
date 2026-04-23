@@ -101,31 +101,47 @@ onAuthStateChanged(auth, async(user)=>{
 
   try{
 
-    limpar();
+ try{
+  limpar();
 
-    const userSnap = await getDoc(doc(db,"usuarios",user.uid));
-    if(!userSnap.exists()) throw "user";
+  console.log("1 user:", user);
 
-    const data = userSnap.data();
+  const userSnap = await getDoc(doc(db,"usuarios",user.uid));
+  console.log("2 userSnap.exists:", userSnap.exists());
 
-    const matrizRef = doc(db,"MATRIZES", data.matrizId || "principal");
-    const matrizSnap = await getDoc(matrizRef);
+  if(!userSnap.exists()) throw new Error("user");
 
-    if(!matrizSnap.exists()) throw "matriz";
+  const data = userSnap.data();
+  console.log("3 data:", data);
 
-    const slots = matrizSnap.data().slots || {};
+  const matrizId = data.matrizId || "principal";
+  console.log("4 matrizId:", matrizId);
 
-    Object.entries(slots).forEach(([slot, uid])=>{
-      if(uid){
-        marcar(slot, uid, user.uid);
-      }
-    });
+  const matrizRef = doc(db,"MATRIZES", matrizId);
+  const matrizSnap = await getDoc(matrizRef);
+  console.log("5 matrizSnap.exists:", matrizSnap.exists());
 
-  }catch(e){
-    console.error("ERRO DASHBOARD:", e);
-    alert("Erro ao carregar dashboard.");
-  }
-});
+  if(!matrizSnap.exists()) throw new Error("matriz");
+
+  const matrizData = matrizSnap.data();
+  console.log("6 matrizData:", matrizData);
+
+  const slots = matrizData.slots || {};
+  console.log("7 slots:", slots);
+
+  Object.entries(slots).forEach(([slot, uid])=>{
+    console.log("8 slot:", slot, "uid:", uid);
+    if(uid){
+      marcar(slot, uid, user.uid);
+    }
+  });
+
+  console.log("9 dashboard ok");
+
+}catch(e){
+  console.error("ERRO DASHBOARD REAL:", e);
+  alert("Erro ao carregar dashboard: " + (e.message || e));
+}
 </script>
 
 </body>
