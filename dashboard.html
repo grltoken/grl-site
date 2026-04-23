@@ -273,11 +273,15 @@ async function pegarNomeOuEmail(uid){
     return uid;
   }
 }
-
 onAuthStateChanged(auth, async (user)=>{
+  
+  alert("Dashboard iniciou"); // 👈 COLOCA AQUI
+
   if(!user){
     window.location.href = "index.html";
     return;
+  }
+
   }
 
   try{
