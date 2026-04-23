@@ -158,7 +158,7 @@ function getParams(){
 }
 
 async function escolherPrimeiroSlotLivre(matrizRef) {
-  const ordem = ["Ma1", "Ma2", "Mb1", "Mb2"];
+  const ordem = ["Maa", "Mab", "Mba", "Mbb"];
 
   const slotEscolhido = await runTransaction(db, async (transaction) => {
     const matrizSnap = await transaction.get(matrizRef);
@@ -221,7 +221,7 @@ async function criarContaPorConvite(email, senha, ref, side){
   }
 
   const refDoc = doc(db, "usuarios", ref);
-  const matrizRef = doc(db, "matrizes", "principal");
+  const matrizRef = doc(db, "MATRIZES", "principal");
 
   try {
     const refSnap = await getDoc(refDoc);
