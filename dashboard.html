@@ -212,7 +212,9 @@ function limparMatriz(){
 
 function marcar(slot, uid, meuUid){
   const el = document.getElementById(slot);
-  if(!el) return;
+  if(!el){
+    throw new Error("slot-html:" + slot);
+  }
 
   el.classList.add("on");
 
@@ -260,21 +262,28 @@ function resetTimer(){
 resetTimer();
 
 onAuthStateChanged(auth, async (user)=>{
-  if(!user){
-    window.location.href = "index.html";
-    return;
-  }
+  const info = document.getElementById("info");
+  const inputLeft = document.getElementById("conviteLeft");
+  const inputRight = document.getElementById("conviteRight");
 
   try{
+    if(info) info.innerHTML = "<p>iniciando...</p>";
+
+    if(!user){
+      throw new Error("auth-sem-user");
+    }
+
     limparMatriz();
+
+    if(!inputLeft) throw new Error("html-conviteLeft");
+    if(!inputRight) throw new Error("html-conviteRight");
+    if(!info) throw new Error("html-info");
 
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
 
     if(!userSnap.exists()){
-      await signOut(auth);
-      window.location.href = "index.html";
-      return;
+      throw new Error("firestore-user");
     }
 
     const data = userSnap.data();
@@ -284,15 +293,15 @@ onAuthStateChanged(auth, async (user)=>{
     const matrizSnap = await getDoc(matrizRef);
 
     if(!matrizSnap.exists()){
-      document.getElementById("info").innerHTML = `
-        <p><b>${data.nome || "Usuário"}</b></p>
-        <p>Matriz não encontrada: ${matrizId}</p>
-      `;
-      return;
+      throw new Error("firestore-matriz:" + matrizId);
     }
 
     const matrizData = matrizSnap.data();
     const slots = matrizData.slots || {};
+
+    const baseUrl = window.location.origin + "/index.html";
+    inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
+    inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
 
     Object.entries(slots).forEach(([slot, uid])=>{
       if(uid){
@@ -301,41 +310,24 @@ onAuthStateChanged(auth, async (user)=>{
     });
 
     const totalFechados = Object.values(slots).filter(Boolean).length;
-    const baseUrl = window.location.origin + "/index.html";
 
-    const inputLeft = document.getElementById("conviteLeft");
-    const inputRight = document.getElementById("conviteRight");
-    const info = document.getElementById("info");
+    info.innerHTML = `
+      <p><b>${data.nome || "Usuário"}</b></p>
+      <p>${data.email || ""}</p>
+      <p>Status: ${data.status || "open"}</p>
+      <p>Pai: ${data.parent || "sem pai"}</p>
+      <p>Matriz: ${matrizId}</p>
+      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
+    `;
 
-    if(inputLeft){
-      inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
-    }
-
-    if(inputRight){
-      inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
-    }
-
+  }catch(error){
+    console.error("ERRO DASHBOARD:", error);
     if(info){
       info.innerHTML = `
-        <p><b>${data.nome || "Usuário"}</b></p>
-        <p>${data.email || ""}</p>
-        <p>Status: ${data.status || "open"}</p>
-        <p>Pai: ${data.parent || "sem pai"}</p>
-        <p>Matriz: ${matrizId}</p>
-        <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
+        <p><b>Erro ao carregar dashboard</b></p>
+        <p>${error.message || error}</p>
       `;
     }
-
- }catch(error){
-  console.error("ERRO DASHBOARD:", error);
-
-  const info = document.getElementById("info");
-  if(info){
-    info.innerHTML = `
-      <p><b>Erro ao carregar dashboard</b></p>
-      <p>${error.message || error}</p>
-    `;
   }
-}
 });
 </script>
