@@ -15,44 +15,15 @@ body{
   align-items:center;
 }
 
-#topbar{
-  width:100%;
-  box-sizing:border-box;
-  padding:15px 12px 0;
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-#topbar button{
-  background:none;
-  border:1px solid #003366;
-  color:#003366;
-  padding:6px 12px;
-  font-size:12px;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-#topbar button:hover{
-  background:#003366;
-  color:#fff;
-}
-
-#matriz{
-  margin-top:25px;
-}
-
 svg{
   width:260px;
   max-width:90vw;
+  margin-top:40px;
 }
 
 line{
   stroke:gold;
   stroke-width:1.5;
-  opacity:0.85;
 }
 
 circle{
@@ -68,224 +39,90 @@ circle.on{
 circle.eu{
   fill:gold;
   opacity:1;
-  filter: drop-shadow(0 0 4px rgba(255,215,0,0.6));
-}
-
-#convites{
-  width:90%;
-  max-width:700px;
-  margin-top:10px;
-  text-align:center;
-}
-
-#convites p{
-  color:#003366;
-  font-size:12px;
-  margin:12px 0 6px;
-}
-
-#convites input{
-  width:100%;
-  box-sizing:border-box;
-  border:1px solid #003366;
-  padding:10px;
-  font-family:Consolas, monospace;
-  font-size:12px;
-  color:#003366;
-  background:#fff;
-}
-
-#curso{
-  max-width:700px;
-  width:90%;
-  overflow:hidden;
-  max-height:0;
-  opacity:0;
-  transition:0.5s;
-}
-
-#curso.ativo{
-  max-height:1000px;
-  opacity:1;
-  margin-top:25px;
-  margin-bottom:30px;
-}
-
-#cursoConteudo{
-  border:1px solid #003366;
-  padding:16px;
-  color:#003366;
-  font-size:13px;
-  line-height:1.6;
-}
-
-#seguranca{
-  width:90%;
-  max-width:700px;
-  margin-top:18px;
-  text-align:center;
-  color:#666;
-  font-size:11px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="topbar">
-  <button onclick="toggleCurso()">Masterminds</button>
-  <button onclick="logout()">Sair</button>
-</div>
+<svg viewBox="0 0 480 460">
 
-<div id="matriz">
-  <svg viewBox="0 0 480 460">
+  <line x1="240" y1="60" x2="120" y2="200"/>
+  <line x1="240" y1="60" x2="360" y2="200"/>
 
-    <line x1="240" y1="60" x2="120" y2="200"/>
-    <line x1="240" y1="60" x2="360" y2="200"/>
+  <line x1="120" y1="200" x2="60" y2="360"/>
+  <line x1="120" y1="200" x2="180" y2="360"/>
 
-    <line x1="120" y1="200" x2="60" y2="360"/>
-    <line x1="120" y1="200" x2="180" y2="360"/>
+  <line x1="360" y1="200" x2="300" y2="360"/>
+  <line x1="360" y1="200" x2="420" y2="360"/>
 
-    <line x1="360" y1="200" x2="300" y2="360"/>
-    <line x1="360" y1="200" x2="420" y2="360"/>
+  <!-- BASE -->
+  <circle id="Maa" cx="60" cy="360" r="5"/>
+  <circle id="Mab" cx="180" cy="360" r="5"/>
+  <circle id="Mba" cx="300" cy="360" r="5"/>
+  <circle id="Mbb" cx="420" cy="360" r="5"/>
 
-    <circle id="Ma1" cx="60" cy="360" r="5"/>
-    <circle id="Ma2" cx="180" cy="360" r="5"/>
-    <circle id="Mb1" cx="300" cy="360" r="5"/>
-    <circle id="Mb2" cx="420" cy="360" r="5"/>
+  <!-- INTERMEDIÁRIO -->
+  <circle id="Ma" cx="120" cy="200" r="6.5"/>
+  <circle id="Mb" cx="360" cy="200" r="6.5"/>
 
-    <circle id="Ma" cx="120" cy="200" r="6.5"/>
-    <circle id="Mb" cx="360" cy="200" r="6.5"/>
+  <!-- TOPO -->
+  <circle id="M" cx="240" cy="60" r="8"/>
 
-    <circle id="M" cx="240" cy="60" r="8"/>
-  </svg>
-</div>
-
-<div id="convites">
-  <p>Convite A</p>
-  <input id="conviteLeft" readonly>
-
-  <p>Convite B</p>
-  <input id="conviteRight" readonly>
-</div>
-
-<div id="seguranca">
-  A sessão será encerrada automaticamente após 10 minutos de inatividade.
-</div>
-
-<div id="curso">
-  <div id="cursoConteudo">
-    Curso aqui
-  </div>
-</div>
+</svg>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function limparMatriz(){
-  document.querySelectorAll("circle").forEach(c => {
-    c.classList.remove("on", "eu");
+function limpar(){
+  document.querySelectorAll("circle").forEach(c=>{
+    c.classList.remove("on","eu");
   });
 }
 
-function marcar(id, classe){
-  const el = document.getElementById(id);
-  if(el) el.classList.add(classe);
-}
+function marcar(slot, uid, meuId){
+  const el = document.getElementById(slot);
+  if(!el) return;
 
-function toggleCurso(){
-  document.getElementById("curso").classList.toggle("ativo");
-}
+  el.classList.add("on");
 
-async function logout(){
-  try{
-    await signOut(auth);
-    window.location.href = "index.html";
-  }catch(error){
-    alert("Erro ao sair.");
-    console.error(error);
+  if(uid === meuId){
+    el.classList.add("eu");
   }
 }
 
-window.toggleCurso = toggleCurso;
-window.logout = logout;
-
-let timeoutInatividade;
-
-function resetTimer(){
-  clearTimeout(timeoutInatividade);
-
-  timeoutInatividade = setTimeout(async ()=>{
-    try{
-      await signOut(auth);
-      alert("Sessão encerrada por segurança.");
-      window.location.href = "index.html";
-    }catch(error){
-      console.error(error);
-    }
-  }, 10 * 60 * 1000);
-}
-
-["click","mousemove","keydown","touchstart","scroll"].forEach(evento => {
-  document.addEventListener(evento, resetTimer, { passive:true });
-});
-
-resetTimer();
-
-onAuthStateChanged(auth, async (user)=>{
+onAuthStateChanged(auth, async(user)=>{
   if(!user){
-    window.location.href = "index.html";
+    location.href = "index.html";
     return;
   }
 
   try{
-    limparMatriz();
 
-    const userRef = doc(db, "usuarios", user.uid);
-    const userSnap = await getDoc(userRef);
+    limpar();
 
-    if(!userSnap.exists()){
-      alert("Usuário não encontrado.");
-      await signOut(auth);
-      window.location.href = "index.html";
-      return;
-    }
+    const userSnap = await getDoc(doc(db,"usuarios",user.uid));
+    if(!userSnap.exists()) throw "user";
 
     const data = userSnap.data();
 
-    const matrizId = data.matrizId || "principal";
-    const matrizRef = doc(db, "matrizes", matrizId);
+    const matrizRef = doc(db,"matrizes", data.matrizId || "principal");
     const matrizSnap = await getDoc(matrizRef);
 
-    if(!matrizSnap.exists()){
-      alert("Matriz não encontrada.");
-      return;
-    }
+    if(!matrizSnap.exists()) throw "matriz";
 
-    const matriz = matrizSnap.data();
-    const slots = matriz.slots || {};
+    const slots = matrizSnap.data().slots || {};
 
-    Object.entries(slots).forEach(([slot, uid]) => {
+    Object.entries(slots).forEach(([slot, uid])=>{
       if(uid){
-        marcar(slot, "on");
-      }
-
-      if(uid === user.uid){
-        marcar(slot, "eu");
+        marcar(slot, uid, user.uid);
       }
     });
 
-    const baseUrl = window.location.origin + "/index.html";
-    const conviteLeft = `${baseUrl}?ref=${user.uid}&side=left`;
-    const conviteRight = `${baseUrl}?ref=${user.uid}&side=right`;
-
-    document.getElementById("conviteLeft").value = conviteLeft;
-    document.getElementById("conviteRight").value = conviteRight;
-
-  }catch(error){
-    console.error(error);
+  }catch(e){
+    console.error("ERRO DASHBOARD:", e);
     alert("Erro ao carregar dashboard.");
   }
 });
