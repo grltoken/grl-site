@@ -233,10 +233,10 @@ function limparMatriz(){
 }
 
 function marcar(slot, uid, meuUid){
-  
+  const slotId = String(slot || "").trim().toLowerCase();
   const el = document.getElementById(slotId);
   if(!el){
-    console.warn("slot-html-nao-encontrado:", slot);
+    console.warn("slot-html-nao-encontrado:", slotId);
     return;
   }
 
@@ -345,16 +345,16 @@ onAuthStateChanged(auth, async (user)=>{
     const data = userSnap.data();
     const matrizId = "principal";
 
-    const matrizRef = doc(db, "matrizes", "principal");
+    const matrizRef = doc(db, "matriz", "principal");
     const matrizSnap = await getDoc(matrizRef);
     if(!matrizSnap.exists()) throw new Error("firestore-matriz:" + matrizId);
 
     const matrizData = matrizSnap.data();
     const slots = matrizData.slots || {};
 
-    Object.entries(slots).forEach(([slot, uid])=>{
-      if(uid){
-        marcar(slot, uid, user.uid);
+    Object.entries(slots).forEach(([slotKey, slotUid])=>{
+      if(slotUid){
+        marcar(slotKey, slotUid, user.uid);
       }
     });
 
