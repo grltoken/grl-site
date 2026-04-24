@@ -233,17 +233,7 @@ function limparMatriz(){
 }
 
 function marcar(slot, uid, meuUid){
-  const slotAlias = {
-    top: "m",
-    m1: "ma",
-    m2: "mb",
-    b1: "maa",
-    b2: "mab",
-    b3: "mba",
-    b4: "mbb"
-  };
-
-  const slotId = slotAlias[slot] || slot;
+  
   const el = document.getElementById(slotId);
   if(!el){
     console.warn("slot-html-nao-encontrado:", slot);
