@@ -343,9 +343,9 @@ onAuthStateChanged(auth, async (user)=>{
     if(!userSnap.exists()) throw new Error("firestore-user");
 
     const data = userSnap.data();
-    const matrizId = user.uid;
+    const matrizId = "principal";
 
-    const matrizRef = doc(db, "matrizes", "user.uid");
+    const matrizRef = doc(db, "matrizes", "principal");
     const matrizSnap = await getDoc(matrizRef);
     if(!matrizSnap.exists()) throw new Error("firestore-matriz:" + matrizId);
 
