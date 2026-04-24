@@ -221,7 +221,7 @@ async function criarContaPorConvite(email, senha, ref, side){
   }
 
   const refDoc = doc(db, "usuarios", ref);
-  const matrizRef = doc(db, "MATRIZES", "principal");
+  const matrizRef = doc(db, "matrizes", "principal");
 
   try {
     const refSnap = await getDoc(refDoc);
