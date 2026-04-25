@@ -236,13 +236,7 @@ async function criarContaPorConvite(email, senha, ref, side){
 
     const refData = refSnap.data();
 
-    if(refData[side]){
-      try{
-        await deleteDoc(doc(db, "usuarios", uid));
-      }catch(e){}
-      alert("Essa vaga já foi preenchida.");
-      return false;
-    }
+    
 
     const slotEscolhido = await escolherPrimeiroSlotLivre(matrizRef);
 
