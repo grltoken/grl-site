@@ -251,13 +251,13 @@ async function criarContaPorConvite(email, senha, ref, side){
       email: email,
       nome: "",
       parent: ref,
-      side: side,
-      left: null,
-      right: null,
+      
+      slotAtual: "maa",
+      convidadosCount: 0,
+      
       status: "open",
       createdAt: serverTimestamp(),
       matrizId: "principal",
-      slot: slotEscolhido
     });
 
     await updateDoc(refDoc, {
