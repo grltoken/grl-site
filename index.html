@@ -257,53 +257,56 @@ async function criarContaPorConvite(email, senha, ref, side){
 const parentRef = doc(db, "usuarios", ref);
 const parentSnap = await getDoc(parentRef);
 
-if (parentSnap.exists()) {
-  const parentData = parentSnap.data();
+if (!parentSnap.exists()) return;
 
-  const novoCount = (parentData.convidadosCount || 0) + 1;
+const parentData = parentSnap.data();
+const novoCount = (parentData.convidadosCount || 0) + 1;
 
-  await updateDoc(parentRef, {
-    convidadosCount: novoCount
+await updateDoc(parentRef, {
+  convidadosCount: novoCount
+});
+
+const matrizRef = doc(db, "matrizes", ref);
+const matrizSnap = await getDoc(matrizRef);
+
+if (!matrizSnap.exists()) return;
+
+const matriz = matrizSnap.data();
+const slots = matriz.slots || {};
+
+function remover(uid){
+  Object.keys(slots).forEach(k=>{
+    if(slots[k] === uid){
+      slots[k] = null;
+    }
   });
+}
 
-  const matrizRef = doc(db, "matrizes", ref);
-  const matrizSnap = await getDoc(matrizRef);
+if(novoCount === 1){
+  remover(ref);
+  slots.mab = ref;
+  slots.maa = uid;
+  await updateDoc(parentRef, { slotAtual: "mab" });
+}
 
-  if (matrizSnap.exists()) {
-    const matriz = matrizSnap.data();
-    const slots = matriz.slots || {};
+if(novoCount === 2){
+  remover(ref);
 
-    if (novoCount === 1) {
-      Object.keys(slots).forEach(key => {
-        if (slots[key] === ref) {
-          slots[key] = null;
-        }
-      });
+  if(!slots.ma){
+    slots.ma = ref;
+    await updateDoc(parentRef, { slotAtual: "ma" });
+  } else {
+    slots.mb = ref;
+    await updateDoc(parentRef, { slotAtual: "mb" });
+  }
 
-      slots.mab = ref;
-      slots.maa = uid;
-    }
+  if(!slots.maa) slots.maa = uid;
+  else if(!slots.mab) slots.mab = uid;
+  else if(!slots.mba) slots.mba = uid;
+  else if(!slots.mbb) slots.mbb = uid;
+}
 
-    if (novoCount === 2) {
-      Object.keys(slots).forEach(key => {
-        if (slots[key] === ref) {
-          slots[key] = null;
-        }
-      });
-
-      if (!slots.ma) {
-        slots.ma = ref;
-      } else if (!slots.mb) {
-        slots.mb = ref;
-      }
-
-      if (!slots.maa) slots.maa = uid;
-      else if (!slots.mab) slots.mab = uid;
-      else if (!slots.mba) slots.mba = uid;
-      else if (!slots.mbb) slots.mbb = uid;
-    }
-
-    await updateDoc(matrizRef, { slots });
+await updateDoc(matrizRef, { slots });
   }
 }
     await updateDoc(refDoc, {
