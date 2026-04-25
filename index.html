@@ -1,387 +1,585 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Matriz</title>
 
 <style>
+
 body{
+
   background:#ffffff;
+
   margin:0;
+
   display:flex;
+
   flex-direction:column;
+
   align-items:center;
+
   justify-content:center;
+
   min-height:100vh;
+
   padding:20px;
+
 }
 
 #loginBtn{
+
   position:fixed;
+
   top:10px;
+
   left:10px;
+
 }
 
 #loginBtn button{
+
   padding:6px 10px;
+
   background:#003366;
+
   color:#fff;
+
   border:none;
+
   font-family: Consolas, monospace;
+
   cursor:pointer;
+
 }
 
 h1{
+
   color:#003366;
+
   font-family: Consolas, monospace;
+
   font-size:28px;
+
   letter-spacing:3px;
+
   text-transform:uppercase;
+
   margin-bottom:40px;
+
 }
 
 svg{
+
   width:90%;
+
   max-width:420px;
+
 }
 
 circle{
+
   fill:#003366;
+
   opacity:0;
+
   transform:scale(0.6);
+
   transform-origin:center;
+
   transform-box:fill-box;
+
   transition: opacity .2s ease, transform .2s ease;
+
 }
 
 circle.on{
+
   opacity:1;
+
   transform:scale(1);
+
 }
+
 </style>
+
 </head>
 
 <body>
 
 <div id="loginBtn">
+
   <button id="loginButton">Login</button>
+
 </div>
 
 <h1 id="title"></h1>
 
 <svg viewBox="0 0 480 460">
+
   <circle id="maa" cx="60" cy="360" r="6"/>
+
   <circle id="mab" cx="180" cy="360" r="6"/>
+
   <circle id="mba" cx="300" cy="360" r="6"/>
+
   <circle id="mbb" cx="420" cy="360" r="6"/>
+
   <circle id="ma" cx="120" cy="200" r="7"/>
+
   <circle id="mb" cx="360" cy="200" r="7"/>
+
   <circle id="m" cx="240" cy="60" r="8"/>
+
 </svg>
 
 <script>
+
 const nodes = {
+
   b1:document.getElementById('maa'),
+
   b2:document.getElementById('mab'),
+
   b3:document.getElementById('mba'),
+
   b4:document.getElementById('mbb'),
+
   m1:document.getElementById('ma'),
+
   m2:document.getElementById('mb'),
+
   top:document.getElementById('m')
+
 };
 
 const title = document.getElementById('title');
+
 const text = "MASTERMINDs";
 
 function show(id){ nodes[id].classList.add('on'); }
+
 function hide(id){ nodes[id].classList.remove('on'); }
 
 function reset(){
+
   Object.keys(nodes).forEach(hide);
+
 }
 
 function typeText(){
+
   title.innerHTML = "";
+
   let i = 0;
 
   const interval = setInterval(()=>{
+
     title.innerHTML = text.substring(0, i + 1) + "|";
+
     i++;
+
     if(i >= text.length) clearInterval(interval);
+
   },80);
+
 }
 
 function run(){
+
   reset();
+
   title.innerHTML = "";
 
   setTimeout(()=>{show('b1')},400);
+
   setTimeout(()=>{hide('b1')},1100);
+
   setTimeout(()=>{show('m1')},1300);
+
   setTimeout(()=>{show('b1');show('b2')},2000);
+
   setTimeout(()=>{hide('m1');hide('b1');hide('b2')},2600);
+
   setTimeout(()=>{show('top')},2800);
+
   setTimeout(()=>{show('m1');show('m2')},3600);
+
   setTimeout(()=>{show('b1');show('b2');show('b3');show('b4')},4500);
+
   setTimeout(()=>{reset()},5800);
+
   setTimeout(()=>{typeText()},6500);
+
 }
 
 run();
+
 setInterval(run,9000);
+
 </script>
 
 <script type="module">
+
 import { auth, db } from "./firebase.js";
+
 import {
+
   signInWithEmailAndPassword,
+
   createUserWithEmailAndPassword
+
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
+
   doc,
+
   getDoc,
+
   setDoc,
+
   updateDoc,
-  deleteDoc,
-  serverTimestamp,
-  runTransaction
+
+  serverTimestamp
+
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 function getParams(){
+
   const url = new URL(window.location.href);
+
   return {
-    ref: url.searchParams.get("ref"),
-    side: url.searchParams.get("side")
+
+    ref: url.searchParams.get("ref")
+
   };
+
 }
 
-async function escolherPrimeiroSlotLivre(matrizRef) {
-  const ordem = ["maa", "mab", "mba", "mbb"];
+async function criarContaPorConvite(email, senha, ref){
 
-  const slotEscolhido = await runTransaction(db, async (transaction) => {
-    const matrizSnap = await transaction.get(matrizRef);
+  if(!ref){
 
-    if (!matrizSnap.exists()) {
-      throw new Error("Matriz não encontrada.");
-    }
-
-    const data = matrizSnap.data();
-    const slots = data.slots || {};
-
-    for (const slot of ordem) {
-      if (!slots[slot]) {
-        return slot;
-      }
-    }
-
-    throw new Error("Sem vagas na base.");
-  });
-
-  return slotEscolhido;
-}
-
-async function criarContaPorConvite(email, senha, ref, side){
-  if(side !== "left" && side !== "right"){
     alert("Convite inválido.");
+
     return false;
+
   }
 
   let uid = null;
 
   try {
+
     const cred = await createUserWithEmailAndPassword(auth, email, senha);
+
     uid = cred.user.uid;
+
   } catch (e) {
+
     console.error("Erro ao criar conta:", e);
 
     if(e.code === "auth/email-already-in-use"){
+
       alert("Este email já está em uso.");
+
       return false;
+
     }
 
     if(e.code === "auth/weak-password"){
+
       alert("Senha fraca. Use pelo menos 6 caracteres.");
+
       return false;
+
     }
 
     if(e.code === "auth/invalid-email"){
+
       alert("Email inválido.");
+
       return false;
+
     }
 
     if(e.code === "auth/network-request-failed"){
+
       alert("Falha de conexão.");
+
       return false;
+
     }
 
     alert(e.code || "Erro ao criar conta.");
+
     return false;
+
   }
 
   const refDoc = doc(db, "usuarios", ref);
-  const matrizRef = doc(db, "matrizes", "principal");
 
   try {
+
     const refSnap = await getDoc(refDoc);
 
     if(!refSnap.exists()){
-      try{
-        await deleteDoc(doc(db, "usuarios", uid));
-      }catch(e){}
+
       alert("Convite inválido.");
+
       return false;
+
     }
-
-    const refData = refSnap.data();
-
-    
-
-    const slotEscolhido = await escolherPrimeiroSlotLivre(matrizRef);
 
     await setDoc(doc(db, "usuarios", uid), {
-      
+
       uid: uid,
+
       email: email,
+
       nome: "",
+
       parent: ref,
-      
+
       slotAtual: "maa",
+
       convidadosCount: 0,
-      
+
       status: "open",
+
       createdAt: serverTimestamp(),
-      matrizId: "principal",
+
+      matrizId: uid
+
     });
-const parentRef = doc(db, "usuarios", ref);
-const parentSnap = await getDoc(parentRef);
 
-if (!parentSnap.exists()) return;
+    await setDoc(doc(db, "matrizes", uid), {
 
-const parentData = parentSnap.data();
-const novoCount = (parentData.convidadosCount || 0) + 1;
+      dono: uid,
 
-await updateDoc(parentRef, {
-  convidadosCount: novoCount
-});
+      createdAt: serverTimestamp(),
 
-const matrizRef = doc(db, "matrizes", ref);
-const matrizSnap = await getDoc(matrizRef);
+      slots: {
 
-if (!matrizSnap.exists()) return;
+        m: null,
 
-const matriz = matrizSnap.data();
-const slots = matriz.slots || {};
+        ma: null,
 
-function remover(uid){
-  Object.keys(slots).forEach(k=>{
-    if(slots[k] === uid){
-      slots[k] = null;
+        mb: null,
+
+        maa: uid,
+
+        mab: null,
+
+        mba: null,
+
+        mbb: null
+
+      }
+
+    });
+
+    const parentRef = doc(db, "usuarios", ref);
+
+    const parentSnap = await getDoc(parentRef);
+
+    if(parentSnap.exists()){
+
+      const parentData = parentSnap.data();
+
+      const novoCount = (parentData.convidadosCount || 0) + 1;
+
+      await updateDoc(parentRef, {
+
+        convidadosCount: novoCount
+
+      });
+
+      const matrizDoParentRef = doc(db, "matrizes", ref);
+
+      const matrizSnap = await getDoc(matrizDoParentRef);
+
+      if(matrizSnap.exists()){
+
+        const matriz = matrizSnap.data();
+
+        const slots = matriz.slots || {};
+
+        function remover(usuarioUid){
+
+          Object.keys(slots).forEach(k=>{
+
+            if(slots[k] === usuarioUid){
+
+              slots[k] = null;
+
+            }
+
+          });
+
+        }
+
+        if(novoCount === 1){
+
+          remover(ref);
+
+          slots.mab = ref;
+
+          slots.maa = uid;
+
+          await updateDoc(parentRef, {
+
+            slotAtual: "mab"
+
+          });
+
+        }
+
+        if(novoCount === 2){
+
+          remover(ref);
+
+          if(!slots.ma){
+
+            slots.ma = ref;
+
+            await updateDoc(parentRef, {
+
+              slotAtual: "ma"
+
+            });
+
+          } else {
+
+            slots.mb = ref;
+
+            await updateDoc(parentRef, {
+
+              slotAtual: "mb"
+
+            });
+
+          }
+
+          if(!slots.maa) slots.maa = uid;
+
+          else if(!slots.mab) slots.mab = uid;
+
+          else if(!slots.mba) slots.mba = uid;
+
+          else if(!slots.mbb) slots.mbb = uid;
+
+        }
+
+        await updateDoc(matrizDoParentRef, {
+
+          slots: slots
+
+        });
+
+      }
+
     }
-  });
-}
-
-if(novoCount === 1){
-  remover(ref);
-  slots.mab = ref;
-  slots.maa = uid;
-  await updateDoc(parentRef, { slotAtual: "mab" });
-}
-
-if(novoCount === 2){
-  remover(ref);
-
-  if(!slots.ma){
-    slots.ma = ref;
-    await updateDoc(parentRef, { slotAtual: "ma" });
-  } else {
-    slots.mb = ref;
-    await updateDoc(parentRef, { slotAtual: "mb" });
-  }
-
-  if(!slots.maa) slots.maa = uid;
-  else if(!slots.mab) slots.mab = uid;
-  else if(!slots.mba) slots.mba = uid;
-  else if(!slots.mbb) slots.mbb = uid;
-}
-
-await updateDoc(matrizRef, { slots });
-  }
-}
-    await updateDoc(refDoc, {
-      [side]: uid
-    });
-
-    await updateDoc(matrizRef, {
-      [`slots.${slotEscolhido}`]: uid
-    });
 
     return true;
 
   } catch (erro) {
+
     console.error("Erro crítico:", erro);
 
-    try{
-      await deleteDoc(doc(db, "usuarios", uid));
-    }catch(e){
-      console.error("Erro ao remover usuário órfão:", e);
-    }
-
     alert("Erro ao posicionar na matriz. Tente novamente.");
+
     return false;
+
   }
+
 }
 
 async function loginOuCadastro(){
+
   const email = prompt("Email:")?.trim();
+
   const senha = prompt("Senha:")?.trim();
 
   if(!email || !senha){
+
     return;
+
   }
 
-  const { ref, side } = getParams();
+  const { ref } = getParams();
 
   try {
+
     await signInWithEmailAndPassword(auth, email, senha);
+
     window.location.href = "dashboard.html";
+
     return;
+
   } catch (error) {
 
-    if(ref && side){
-      const ok = await criarContaPorConvite(email, senha, ref, side);
+    if(ref){
+
+      const ok = await criarContaPorConvite(email, senha, ref);
+
       if(ok){
+
         window.location.href = "dashboard.html";
+
       }
+
       return;
+
     }
 
     if(
+
       error.code === "auth/user-not-found" ||
+
       error.code === "auth/invalid-credential" ||
+
       error.code === "auth/invalid-login-credentials"
+
     ){
+
       alert("Cadastro apenas por convite.");
+
       return;
+
     }
 
     if(error.code === "auth/wrong-password"){
+
       alert("Senha incorreta.");
+
       return;
+
     }
 
     if(error.code === "auth/invalid-email"){
+
       alert("Email inválido.");
+
       return;
+
     }
 
     alert(error.code || "Erro no login.");
+
   }
+
 }
 
 document.getElementById("loginButton").addEventListener("click", loginOuCadastro);
+
 </script>
 
 </body>
+
 </html>
