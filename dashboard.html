@@ -13,32 +13,35 @@ body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  min-height:100vh;
-  padding:16px;
 }
 
 #topbar{
   width:100%;
-  max-width:720px;
   box-sizing:border-box;
-  padding:6px 0 0;
+  padding:15px 12px 0;
   display:flex;
-  justify-content:flex-end;
-  gap:8px;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
 }
 
 #topbar button{
-  background:transparent;
+  background:none;
   border:1px solid #003366;
   color:#003366;
-  padding:5px 9px;
-  font-size:11px;
+  padding:6px 12px;
+  font-size:12px;
   cursor:pointer;
-  opacity:0.85;
+  transition:0.2s;
+}
+
+#topbar button:hover{
+  background:#003366;
+  color:#fff;
 }
 
 #matriz{
-  margin-top:14px;
+  margin-top:25px;
 }
 
 svg{
@@ -69,9 +72,9 @@ circle.eu{
 }
 
 #info{
-  width:100%;
-  max-width:720px;
-  margin-top:20px;
+  width:90%;
+  max-width:700px;
+  margin-top:25px;
   text-align:center;
   color:#003366;
   font-size:13px;
@@ -84,8 +87,8 @@ circle.eu{
 }
 
 #convites{
-  width:100%;
-  max-width:720px;
+  width:90%;
+  max-width:700px;
   margin-top:10px;
   text-align:center;
 }
@@ -113,18 +116,23 @@ circle.eu{
 }
 
 .convite-actions button{
-  background:transparent;
+  background:none;
   border:1px solid #003366;
   color:#003366;
-  padding:5px 9px;
+  padding:6px 10px;
   font-size:11px;
   cursor:pointer;
-  opacity:0.85;
+  transition:0.2s;
+}
+
+.convite-actions button:hover{
+  background:#003366;
+  color:#fff;
 }
 
 #curso{
-  max-width:720px;
-  width:100%;
+  max-width:700px;
+  width:90%;
   overflow:hidden;
   max-height:0;
   opacity:0;
@@ -147,8 +155,8 @@ circle.eu{
 }
 
 #seguranca{
-  width:100%;
-  max-width:720px;
+  width:90%;
+  max-width:700px;
   margin-top:18px;
   text-align:center;
   color:#666;
