@@ -241,6 +241,15 @@ function marcar(slot, uid, meuUid){
   }
 }
 
+function marcarMinhaPosicao(slot){
+  const slotId = String(slot || "").trim().toLowerCase();
+  const el = document.getElementById(slotId);
+  if(!el){
+    return;
+  }
+  el.classList.add("on", "eu");
+}
+
 function toggleCurso(){
   const curso = document.getElementById("curso");
   if(curso) curso.classList.toggle("ativo");
@@ -336,22 +345,34 @@ onAuthStateChanged(auth, async (user)=>{
     if(!userSnap.exists()) throw new Error("firestore-user");
 
     const data = userSnap.data();
-    const matrizId = "principal";
+    const matrizId = data.matrizId;
+    if(!matrizId) throw new Error("user-sem-matrizId");
 
-    const matrizRef = doc(db, "matrizes", "principal");
+    const matrizRef = doc(db, "matrizes", matrizId);
     const matrizSnap = await getDoc(matrizRef);
     if(!matrizSnap.exists()) throw new Error("firestore-matriz:" + matrizId);
 
     const matrizData = matrizSnap.data();
     const slots = matrizData.slots || {};
 
+    let encontrouMeuUidNosSlots = false;
+
     Object.entries(slots).forEach(([slotKey, slotUid])=>{
       if(slotUid){
         marcar(slotKey, slotUid, user.uid);
+        if(String(slotUid) === String(user.uid)){
+          encontrouMeuUidNosSlots = true;
+        }
       }
     });
 
-    const totalFechados = Object.values(slots).filter(Boolean).length;
+    if(!encontrouMeuUidNosSlots && data.slotAtual){
+      marcarMinhaPosicao(data.slotAtual);
+    }
+
+    const slotsProgressao = ["ma", "mb", "maa", "mab", "mba", "mbb"];
+    const totalFechados = slotsProgressao.filter((slotKey)=>Boolean(slots[slotKey])).length;
+    const topoStatus = slots.m ? "ocupado" : "vazio";
 
     info.innerHTML = `
       <p><b>${data.nome || "Usuário"}</b></p>
@@ -359,7 +380,8 @@ onAuthStateChanged(auth, async (user)=>{
       <p>Status: ${data.status || "open"}</p>
       <p>Pai: ${data.parent || "sem pai"}</p>
       <p>Matriz: ${matrizId}</p>
-      <p>Posições ocupadas nesta matriz: ${totalFechados}/7</p>
+      <p>Topo (m): ${topoStatus}</p>
+      <p>Posições de progressão ocupadas: ${totalFechados}/6</p>
     `;
   }catch(error){
     console.error("ERRO DASHBOARD:", error);
