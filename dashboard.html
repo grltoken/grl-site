@@ -250,6 +250,16 @@ function marcarMinhaPosicao(slot){
   el.classList.add("on", "eu");
 }
 
+function slotPertenceAoUsuario(slotValue, uid){
+  if(!slotValue || !uid) return false;
+  if(String(slotValue) === String(uid)) return true;
+  if(typeof slotValue === "object"){
+    if(slotValue.uid && String(slotValue.uid) === String(uid)) return true;
+    if(slotValue.userUid && String(slotValue.userUid) === String(uid)) return true;
+  }
+  return false;
+}
+
 function toggleCurso(){
   const curso = document.getElementById("curso");
   if(curso) curso.classList.toggle("ativo");
@@ -355,19 +365,26 @@ onAuthStateChanged(auth, async (user)=>{
     const matrizData = matrizSnap.data();
     const slots = matrizData.slots || {};
 
-    let encontrouMeuUidNosSlots = false;
+    let minhaPosicaoDetectada = "";
 
     Object.entries(slots).forEach(([slotKey, slotUid])=>{
       if(slotUid){
         marcar(slotKey, slotUid, user.uid);
-        if(String(slotUid) === String(user.uid)){
-          encontrouMeuUidNosSlots = true;
+        if(slotPertenceAoUsuario(slotUid, user.uid)){
+          minhaPosicaoDetectada = slotKey;
         }
       }
     });
 
-    if(!encontrouMeuUidNosSlots && data.slotAtual){
+    if(!minhaPosicaoDetectada && data.slotAtual){
+      minhaPosicaoDetectada = data.slotAtual;
       marcarMinhaPosicao(data.slotAtual);
+    }
+
+    if(!minhaPosicaoDetectada && matrizData.ownerUid && String(matrizData.ownerUid) === String(user.uid)){
+      // Em algumas contas antigas, o dono da matriz não tem slot persistido.
+      minhaPosicaoDetectada = "maa";
+      marcarMinhaPosicao("maa");
     }
 
     const slotsProgressao = ["ma", "mb", "maa", "mab", "mba", "mbb"];
@@ -380,6 +397,7 @@ onAuthStateChanged(auth, async (user)=>{
       <p>Status: ${data.status || "open"}</p>
       <p>Pai: ${data.parent || "sem pai"}</p>
       <p>Matriz: ${matrizId}</p>
+      <p>Minha posição detectada: ${minhaPosicaoDetectada || "não encontrada"}</p>
       <p>Topo (m): ${topoStatus}</p>
       <p>Posições de progressão ocupadas: ${totalFechados}/6</p>
     `;
