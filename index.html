@@ -24,12 +24,23 @@ body{
 }
 
 #loginBtn button{
-  padding:6px 10px;
+  padding:7px 12px;
   background:#003366;
   color:#fff;
   border:none;
+  border-radius:10px;
   font-family: Consolas, monospace;
   cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,51,102,0.18);
+  transition:opacity .2s ease, transform .06s ease;
+}
+
+#loginBtn button:hover{
+  opacity:.92;
+}
+
+#loginBtn button:active{
+  transform:translateY(1px);
 }
 
 h1{
@@ -64,45 +75,82 @@ circle.on{
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.45);
+  background:rgba(8,18,40,0.32);
+  backdrop-filter: blur(2px);
   align-items:center;
   justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
 }
 
 .modal-box{
-  background:#fff;
-  border:1px solid #003366;
-  width:320px;
-  max-width:92vw;
-  padding:16px;
+  width:100%;
+  max-width:340px;
+  background:#ffffff;
+  border:1px solid rgba(0,51,102,0.18);
+  border-radius:16px;
+  padding:18px;
+  box-sizing:border-box;
+  box-shadow:0 14px 40px rgba(0,35,70,0.14);
 }
 
 .modal-box h2{
-  margin:0 0 10px;
-  color:#003366;
-  font-size:16px;
+  margin:0 0 12px;
+  color:#002f5e;
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.2px;
 }
 
 .modal-box input{
   width:100%;
-  border:1px solid #003366;
-  padding:10px;
+  border:1px solid rgba(0,51,102,0.25);
+  border-radius:10px;
+  padding:10px 12px;
   margin-bottom:10px;
   font-family: Consolas, monospace;
+  font-size:13px;
+  color:#003366;
+  box-sizing:border-box;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+
+.modal-box input:focus{
+  border-color:#2a6fb3;
+  box-shadow:0 0 0 3px rgba(42,111,179,.12);
 }
 
 .modal-row{
   display:flex;
   gap:8px;
+  margin-top:4px;
 }
 
 .modal-row button{
-  padding:8px 10px;
+  flex:1;
+  padding:9px 10px;
+  border-radius:10px;
+  border:1px solid #003366;
   background:#003366;
   color:#fff;
-  border:none;
   font-family: Consolas, monospace;
+  font-size:12px;
   cursor:pointer;
+  transition:transform .06s ease, opacity .2s ease;
+}
+
+.modal-row button:last-child{
+  background:#fff;
+  color:#003366;
+}
+
+.modal-row button:hover{
+  opacity:.9;
+}
+
+.modal-row button:active{
+  transform:translateY(1px);
 }
 </style>
 </head>
@@ -185,6 +233,31 @@ run();
 setInterval(run, 9000);
 </script>
 
+<script>
+function abrirLogin() {
+  document.getElementById("loginModal").style.display = "flex";
+}
+
+function fecharLogin() {
+  document.getElementById("loginModal").style.display = "none";
+}
+
+// Fallback para evitar botão "morto" se o módulo falhar.
+window.login = function () {
+  alert("Carregando login... se persistir, recarregue a página.");
+};
+
+window.abrirLogin = abrirLogin;
+window.fecharLogin = fecharLogin;
+
+window.addEventListener("click", function(event) {
+  const modal = document.getElementById("loginModal");
+  if (event.target === modal) {
+    fecharLogin();
+  }
+});
+</script>
+
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
@@ -202,14 +275,6 @@ import {
 const SLOT_ORDER = ["ma", "mb", "maa", "mab", "mba", "mbb"];
 const params = new URL(window.location.href).searchParams;
 const ref = (params.get("ref") || "").trim();
-
-function abrirLogin() {
-  document.getElementById("loginModal").style.display = "flex";
-}
-
-function fecharLogin() {
-  document.getElementById("loginModal").style.display = "none";
-}
 
 function proximoSlotDisponivel(slots) {
   for (const slot of SLOT_ORDER) {
@@ -300,7 +365,7 @@ async function criarContaPorConvite(email, senha, refUid) {
   }
 }
 
-async function login() {
+async function loginReal() {
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
 
@@ -311,7 +376,7 @@ async function login() {
 
   try {
     await signInWithEmailAndPassword(auth, email, senha);
-    fecharLogin();
+    window.fecharLogin();
     window.location.href = "dashboard.html";
   } catch (error) {
     const credencialInvalida =
@@ -327,22 +392,13 @@ async function login() {
 
     const criado = await criarContaPorConvite(email, senha, ref);
     if (criado) {
-      fecharLogin();
+      window.fecharLogin();
       window.location.href = "dashboard.html";
     }
   }
 }
 
-window.abrirLogin = abrirLogin;
-window.fecharLogin = fecharLogin;
-window.login = login;
-
-window.addEventListener("click", function(event) {
-  const modal = document.getElementById("loginModal");
-  if (event.target === modal) {
-    fecharLogin();
-  }
-});
+window.login = loginReal;
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
