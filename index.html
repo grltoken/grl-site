@@ -1,585 +1,406 @@
-<!DOCTYPE html>
-
+!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Matriz</title>
-
 <style>
+* { box-sizing: border-box; }
 
-body{
-
-  background:#ffffff;
-
-  margin:0;
-
-  display:flex;
-
-  flex-direction:column;
-
-  align-items:center;
-
-  justify-content:center;
-
-  min-height:100vh;
-
-  padding:20px;
-
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b1020;
+  color: #f5f7ff;
 }
 
-#loginBtn{
-
-  position:fixed;
-
-  top:10px;
-
-  left:10px;
-
+.container {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-#loginBtn button{
-
-  padding:6px 10px;
-
-  background:#003366;
-
-  color:#fff;
-
-  border:none;
-
-  font-family: Consolas, monospace;
-
-  cursor:pointer;
-
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-h1{
-
-  color:#003366;
-
-  font-family: Consolas, monospace;
-
-  font-size:28px;
-
-  letter-spacing:3px;
-
-  text-transform:uppercase;
-
-  margin-bottom:40px;
-
+.brand {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-svg{
-
-  width:90%;
-
-  max-width:420px;
-
+.actions {
+  display: flex;
+  gap: 8px;
 }
 
-circle{
-
-  fill:#003366;
-
-  opacity:0;
-
-  transform:scale(0.6);
-
-  transform-origin:center;
-
-  transform-box:fill-box;
-
-  transition: opacity .2s ease, transform .2s ease;
-
+button {
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
 }
 
-circle.on{
-
-  opacity:1;
-
-  transform:scale(1);
-
+.btn-primary {
+  background: #3ad38f;
+  color: #081025;
 }
 
+.btn-ghost {
+  background: #1c2440;
+  color: #ffffff;
+}
+
+.hero {
+  background: linear-gradient(110deg, #121a33, #0f1731);
+  border: 1px solid #263158;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+}
+
+.hero p {
+  margin: 0 0 16px;
+  color: #ccd7ff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: #121a33;
+  border: 1px solid #273259;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.card h3 {
+  margin: 0 0 10px;
+}
+
+.event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #222e56;
+  padding: 10px 0;
+}
+
+.event:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.odd {
+  background: #263564;
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-weight: 700;
+}
+
+.wallet-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+
+.status {
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px dashed #39508d;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #d5ddff;
+}
+
+.legal {
+  margin-top: 22px;
+  font-size: 12px;
+  color: #9fb0e8;
+  line-height: 1.5;
+}
+
+#loginModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 5, 10, 0.75);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 380px;
+  background: #111a36;
+  border: 1px solid #2c3a69;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.modal-box h2 {
+  margin-top: 0;
+}
+
+.modal-box input {
+  width: 100%;
+  margin-bottom: 10px;
+  border: 1px solid #314273;
+  background: #0a1023;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.modal-row {
+  display: flex;
+  gap: 8px;
+}
 </style>
-
 </head>
-
 <body>
+  <div class="container">
+    <header>
+      <div class="brand">GRL Network</div>
+      <div class="actions">
+        <button class="btn-ghost" onclick="abrirLogin()">Entrar</button>
+        <button class="btn-primary" onclick="abrirLogin()">Cadastrar</button>
+      </div>
+    </header>
 
-<div id="loginBtn">
+    <section class="hero">
+      <h1>Construa sua rede com acesso por convite único</h1>
+      <p>Matriz inteligente com evolução por participação ativa, ascensão e continuidade de fluxo.</p>
+      <button class="btn-primary" onclick="abrirLogin()">Começar agora</button>
+    </section>
 
-  <button id="loginButton">Login</button>
+    <section class="grid">
+      <article class="card">
+        <h3>Evolução da matriz</h3>
+        <div class="event"><span>Convite único ativo</span><span class="odd">OK</span></div>
+        <div class="event"><span>Posicionamento automático</span><span class="odd">ON</span></div>
+        <div class="event"><span>Ascensão por atividade</span><span class="odd">LIVE</span></div>
+      </article>
 
-</div>
+      <article class="card">
+        <h3>Minha rede</h3>
+        <div class="wallet-line"><span>Status da conta</span><strong id="saldo">Ativo</strong></div>
+        <div class="wallet-line"><span>Diretos ativos</span><strong id="abertas">0</strong></div>
+        <div class="wallet-line"><span>Ciclos concluídos</span><strong id="historico">0</strong></div>
+        <div class="status" id="status">Você ainda não está logado.</div>
+      </article>
+    </section>
 
-<h1 id="title"></h1>
+    <footer class="legal">
+      Plataforma de marketing multinível com matriz de evolução.<br>
+      Acompanhe sua estrutura, mantenha participação ativa e evolua com responsabilidade.
+    </footer>
+  </div>
 
-<svg viewBox="0 0 480 460">
-
-  <circle id="maa" cx="60" cy="360" r="6"/>
-
-  <circle id="mab" cx="180" cy="360" r="6"/>
-
-  <circle id="mba" cx="300" cy="360" r="6"/>
-
-  <circle id="mbb" cx="420" cy="360" r="6"/>
-
-  <circle id="ma" cx="120" cy="200" r="7"/>
-
-  <circle id="mb" cx="360" cy="200" r="7"/>
-
-  <circle id="m" cx="240" cy="60" r="8"/>
-
-</svg>
-
-<script>
-
-const nodes = {
-
-  b1:document.getElementById('maa'),
-
-  b2:document.getElementById('mab'),
-
-  b3:document.getElementById('mba'),
-
-  b4:document.getElementById('mbb'),
-
-  m1:document.getElementById('ma'),
-
-  m2:document.getElementById('mb'),
-
-  top:document.getElementById('m')
-
-};
-
-const title = document.getElementById('title');
-
-const text = "MASTERMINDs";
-
-function show(id){ nodes[id].classList.add('on'); }
-
-function hide(id){ nodes[id].classList.remove('on'); }
-
-function reset(){
-
-  Object.keys(nodes).forEach(hide);
-
-}
-
-function typeText(){
-
-  title.innerHTML = "";
-
-  let i = 0;
-
-  const interval = setInterval(()=>{
-
-    title.innerHTML = text.substring(0, i + 1) + "|";
-
-    i++;
-
-    if(i >= text.length) clearInterval(interval);
-
-  },80);
-
-}
-
-function run(){
-
-  reset();
-
-  title.innerHTML = "";
-
-  setTimeout(()=>{show('b1')},400);
-
-  setTimeout(()=>{hide('b1')},1100);
-
-  setTimeout(()=>{show('m1')},1300);
-
-  setTimeout(()=>{show('b1');show('b2')},2000);
-
-  setTimeout(()=>{hide('m1');hide('b1');hide('b2')},2600);
-
-  setTimeout(()=>{show('top')},2800);
-
-  setTimeout(()=>{show('m1');show('m2')},3600);
-
-  setTimeout(()=>{show('b1');show('b2');show('b3');show('b4')},4500);
-
-  setTimeout(()=>{reset()},5800);
-
-  setTimeout(()=>{typeText()},6500);
-
-}
-
-run();
-
-setInterval(run,9000);
-
-</script>
+  <div id="loginModal">
+    <div class="modal-box">
+      <h2>Entrar na GRL Network</h2>
+      <input id="email" type="email" placeholder="Email">
+      <input id="senha" type="password" placeholder="Senha">
+      <div class="modal-row">
+        <button class="btn-primary" onclick="login()">Entrar</button>
+        <button class="btn-ghost" onclick="fecharLogin()">Fechar</button>
+      </div>
+    </div>
+  </div>
 
 <script type="module">
-
 import { auth, db } from "./firebase.js";
-
 import {
-
-  signInWithEmailAndPassword,
-
-  createUserWithEmailAndPassword
-
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 import {
-
   doc,
-
   getDoc,
-
-  setDoc,
-
-  updateDoc,
-
+  runTransaction,
   serverTimestamp
-
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function getParams(){
+const SLOT_ORDER = ["ma", "mb", "maa", "mab", "mba", "mbb"];
+const params = new URL(window.location.href).searchParams;
+const ref = (params.get("ref") || "").trim();
 
-  const url = new URL(window.location.href);
-
-  return {
-
-    ref: url.searchParams.get("ref")
-
-  };
-
+function abrirLogin() {
+  document.getElementById("loginModal").style.display = "flex";
 }
 
-async function criarContaPorConvite(email, senha, ref){
+function fecharLogin() {
+  document.getElementById("loginModal").style.display = "none";
+}
 
-  if(!ref){
+function formatarValor(valor) {
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
-    alert("Convite inválido.");
+function aplicarSessao(email) {
+  document.getElementById("saldo").textContent = "Ativo";
+  document.getElementById("abertas").textContent = "2";
+  document.getElementById("historico").textContent = "1";
+  document.getElementById("status").textContent = "Sessão ativa para: " + email;
+}
 
+function proximoSlotDisponivel(slots) {
+  for (const slot of SLOT_ORDER) {
+    if (!slots[slot]) return slot;
+  }
+  return null;
+}
+
+async function criarContaPorConvite(email, senha, refUid) {
+  if (!refUid) {
+    alert("Cadastro apenas por convite.");
     return false;
-
   }
 
-  let uid = null;
-
+  let cred;
   try {
-
-    const cred = await createUserWithEmailAndPassword(auth, email, senha);
-
-    uid = cred.user.uid;
-
+    cred = await createUserWithEmailAndPassword(auth, email, senha);
   } catch (e) {
-
-    console.error("Erro ao criar conta:", e);
-
-    if(e.code === "auth/email-already-in-use"){
-
-      alert("Este email já está em uso.");
-
+    if (e.code === "auth/email-already-in-use") {
+      alert("Este e-mail já está em uso.");
       return false;
-
     }
-
-    if(e.code === "auth/weak-password"){
-
+    if (e.code === "auth/weak-password") {
       alert("Senha fraca. Use pelo menos 6 caracteres.");
-
       return false;
-
     }
-
-    if(e.code === "auth/invalid-email"){
-
-      alert("Email inválido.");
-
-      return false;
-
-    }
-
-    if(e.code === "auth/network-request-failed"){
-
-      alert("Falha de conexão.");
-
-      return false;
-
-    }
-
-    alert(e.code || "Erro ao criar conta.");
-
+    alert("Erro ao criar conta: " + (e.code || e.message || e));
     return false;
-
   }
 
-  const refDoc = doc(db, "usuarios", ref);
+  const novoUid = cred.user.uid;
+  const novoUserRef = doc(db, "usuarios", novoUid);
+  const refUserRef = doc(db, "usuarios", refUid);
 
   try {
+    await runTransaction(db, async (transaction) => {
+      const refSnap = await transaction.get(refUserRef);
+      if (!refSnap.exists()) throw new Error("convite-invalido");
 
-    const refSnap = await getDoc(refDoc);
+      const refData = refSnap.data();
+      const matrizId = refData.matrizId;
+      if (!matrizId) throw new Error("ref-sem-matriz");
 
-    if(!refSnap.exists()){
+      const matrizRef = doc(db, "matrizes", matrizId);
+      const matrizSnap = await transaction.get(matrizRef);
+      if (!matrizSnap.exists()) throw new Error("matriz-inexistente");
 
-      alert("Convite inválido.");
+      const matrizData = matrizSnap.data();
+      const slots = { ...(matrizData.slots || {}) };
+      const slot = proximoSlotDisponivel(slots);
+      if (!slot) throw new Error("matriz-cheia");
 
-      return false;
+      slots[slot] = novoUid;
 
-    }
-
-    await setDoc(doc(db, "usuarios", uid), {
-
-      uid: uid,
-
-      email: email,
-
-      nome: "",
-
-      parent: ref,
-
-      slotAtual: "maa",
-
-      convidadosCount: 0,
-
-      status: "open",
-
-      createdAt: serverTimestamp(),
-
-      matrizId: uid
-
-    });
-
-    await setDoc(doc(db, "matrizes", uid), {
-
-      dono: uid,
-
-      createdAt: serverTimestamp(),
-
-      slots: {
-
-        m: null,
-
-        ma: null,
-
-        mb: null,
-
-        maa: uid,
-
-        mab: null,
-
-        mba: null,
-
-        mbb: null
-
-      }
-
-    });
-
-    const parentRef = doc(db, "usuarios", ref);
-
-    const parentSnap = await getDoc(parentRef);
-
-    if(parentSnap.exists()){
-
-      const parentData = parentSnap.data();
-
-      const novoCount = (parentData.convidadosCount || 0) + 1;
-
-      await updateDoc(parentRef, {
-
-        convidadosCount: novoCount
-
+      transaction.set(novoUserRef, {
+        uid: novoUid,
+        email,
+        nome: "",
+        parent: refUid,
+        matrizId: novoUid,
+        slotAtual: "maa",
+        status: "open",
+        createdAt: serverTimestamp()
       });
 
-      const matrizDoParentRef = doc(db, "matrizes", ref);
+      transaction.update(matrizRef, {
+        slots,
+        updatedAt: serverTimestamp()
+      });
 
-      const matrizSnap = await getDoc(matrizDoParentRef);
-
-      if(matrizSnap.exists()){
-
-        const matriz = matrizSnap.data();
-
-        const slots = matriz.slots || {};
-
-        function remover(usuarioUid){
-
-          Object.keys(slots).forEach(k=>{
-
-            if(slots[k] === usuarioUid){
-
-              slots[k] = null;
-
-            }
-
-          });
-
-        }
-
-        if(novoCount === 1){
-
-          remover(ref);
-
-          slots.mab = ref;
-
-          slots.maa = uid;
-
-          await updateDoc(parentRef, {
-
-            slotAtual: "mab"
-
-          });
-
-        }
-
-        if(novoCount === 2){
-
-          remover(ref);
-
-          if(!slots.ma){
-
-            slots.ma = ref;
-
-            await updateDoc(parentRef, {
-
-              slotAtual: "ma"
-
-            });
-
-          } else {
-
-            slots.mb = ref;
-
-            await updateDoc(parentRef, {
-
-              slotAtual: "mb"
-
-            });
-
-          }
-
-          if(!slots.maa) slots.maa = uid;
-
-          else if(!slots.mab) slots.mab = uid;
-
-          else if(!slots.mba) slots.mba = uid;
-
-          else if(!slots.mbb) slots.mbb = uid;
-
-        }
-
-        await updateDoc(matrizDoParentRef, {
-
-          slots: slots
-
-        });
-
-      }
-
-    }
+      transaction.set(doc(db, "matrizes", novoUid), {
+        ownerUid: novoUid,
+        parentMatrixOwnerUid: matrizData.ownerUid || refUid,
+        slots: { m: null, ma: null, mb: null, maa: novoUid, mab: null, mba: null, mbb: null },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    });
 
     return true;
-
-  } catch (erro) {
-
-    console.error("Erro crítico:", erro);
-
-    alert("Erro ao posicionar na matriz. Tente novamente.");
-
+  } catch (e) {
+    alert(
+      e.message === "matriz-cheia"
+        ? "Matriz do convite está cheia."
+        : "Erro ao posicionar na matriz."
+    );
     return false;
-
   }
-
 }
 
-async function loginOuCadastro(){
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value.trim();
 
-  const email = prompt("Email:")?.trim();
-
-  const senha = prompt("Senha:")?.trim();
-
-  if(!email || !senha){
-
+  if (!email || !senha) {
+    alert("Preencha e-mail e senha.");
     return;
-
   }
-
-  const { ref } = getParams();
 
   try {
-
     await signInWithEmailAndPassword(auth, email, senha);
-
+    fecharLogin();
     window.location.href = "dashboard.html";
-
-    return;
-
   } catch (error) {
-
-    if(ref){
-
-      const ok = await criarContaPorConvite(email, senha, ref);
-
-      if(ok){
-
-        window.location.href = "dashboard.html";
-
-      }
-
-      return;
-
-    }
-
-    if(
-
+    const credencialInvalida =
       error.code === "auth/user-not-found" ||
-
       error.code === "auth/invalid-credential" ||
+      error.code === "auth/invalid-login-credentials" ||
+      error.code === "auth/wrong-password";
 
-      error.code === "auth/invalid-login-credentials"
-
-    ){
-
-      alert("Cadastro apenas por convite.");
-
+    if (!credencialInvalida) {
+      alert("Erro no login: " + (error.code || error.message || error));
       return;
-
     }
 
-    if(error.code === "auth/wrong-password"){
-
-      alert("Senha incorreta.");
-
-      return;
-
+    const criado = await criarContaPorConvite(email, senha, ref);
+    if (criado) {
+      fecharLogin();
+      window.location.href = "dashboard.html";
     }
-
-    if(error.code === "auth/invalid-email"){
-
-      alert("Email inválido.");
-
-      return;
-
-    }
-
-    alert(error.code || "Erro no login.");
-
   }
-
 }
 
-document.getElementById("loginButton").addEventListener("click", loginOuCadastro);
+window.abrirLogin = abrirLogin;
+window.fecharLogin = fecharLogin;
+window.login = login;
 
+window.addEventListener("click", function(event) {
+  const modal = document.getElementById("loginModal");
+  if (event.target === modal) {
+    fecharLogin();
+  }
+});
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  const userSnap = await getDoc(doc(db, "usuarios", user.uid));
+  if (!userSnap.exists()) return;
+  const data = userSnap.data();
+  aplicarSessao(data.email || user.email || "");
+});
 </script>
-
 </body>
-
 </html>
