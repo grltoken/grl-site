@@ -335,7 +335,8 @@ onAuthStateChanged(auth, async (user)=>{
     if(!info) throw new Error("html-info");
 
     const baseUrl = window.location.origin + "/index.html";
-const linkConvite = ${baseUrl}?ref=${user.uid};
+const baseUrl = window.location.origin + "/index.html";
+const linkConvite = baseUrl + "?ref=" + user.uid;
 
 inputLeft.value = linkConvite;
 inputRight.value = linkConvite;
