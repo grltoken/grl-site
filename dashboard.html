@@ -198,16 +198,10 @@ circle.eu{
 <div id="info"></div>
 
 <div id="convites">
-  <p>Convite A</p>
-  <input id="conviteLeft" readonly>
+  <p>Seu convite</p>
+  <input id="convite" readonly>
   <div class="convite-actions">
-    <button onclick="copiarConvite('conviteLeft', this)">Copiar Convite A</button>
-  </div>
-
-  <p>Convite B</p>
-  <input id="conviteRight" readonly>
-  <div class="convite-actions">
-    <button onclick="copiarConvite('conviteRight', this)">Copiar Convite B</button>
+    <button onclick="copiarConvite('convite', this)">Copiar convite</button>
   </div>
 </div>
 
@@ -317,8 +311,7 @@ resetTimer();
 
 onAuthStateChanged(auth, async (user)=>{
   const info = document.getElementById("info");
-  const inputLeft = document.getElementById("conviteLeft");
-  const inputRight = document.getElementById("conviteRight");
+  const inputConvite = document.getElementById("convite");
 
   try{
     if(info) info.innerHTML = "<p>Carregando...</p>";
@@ -330,16 +323,13 @@ onAuthStateChanged(auth, async (user)=>{
 
     limparMatriz();
 
-    if(!inputLeft) throw new Error("html-conviteLeft");
-    if(!inputRight) throw new Error("html-conviteRight");
+    if(!inputConvite) throw new Error("html-convite");
     if(!info) throw new Error("html-info");
 
     const baseUrl = window.location.origin + "/index.html";
-const baseUrl = window.location.origin + "/index.html";
-const linkConvite = baseUrl + "?ref=" + user.uid;
+    const linkConvite = baseUrl + "?ref=" + user.uid;
 
-inputLeft.value = linkConvite;
-inputRight.value = linkConvite;
+    inputConvite.value = linkConvite;
 
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
