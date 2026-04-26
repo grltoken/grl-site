@@ -335,8 +335,10 @@ onAuthStateChanged(auth, async (user)=>{
     if(!info) throw new Error("html-info");
 
     const baseUrl = window.location.origin + "/index.html";
-    inputLeft.value = `${baseUrl}?ref=${user.uid}&side=left`;
-    inputRight.value = `${baseUrl}?ref=${user.uid}&side=right`;
+const linkConvite = ${baseUrl}?ref=${user.uid};
+
+inputLeft.value = linkConvite;
+inputRight.value = linkConvite;
 
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
