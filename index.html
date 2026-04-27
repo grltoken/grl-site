@@ -262,11 +262,15 @@ window.addEventListener("click", function(event) {
 import { auth, db } from "./firebase.js";
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
+  signOut,
   signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
+  collection,
   doc,
+  getCountFromServer,
   getDoc,
   runTransaction,
   serverTimestamp
@@ -275,6 +279,7 @@ import {
 const SLOT_ORDER = ["ma", "mb", "maa", "mab", "mba", "mbb"];
 const params = new URL(window.location.href).searchParams;
 const ref = (params.get("ref") || "").trim();
+const bootstrapRef = doc(db, "sistema", "bootstrap");
 
 function proximoSlotDisponivel(slots) {
   for (const slot of SLOT_ORDER) {
@@ -361,6 +366,94 @@ async function criarContaPorConvite(email, senha, refUid) {
         ? "Matriz do convite está cheia."
         : "Erro ao posicionar na matriz."
     );
+
+    // Evita sessão autenticada sem documentos no Firestore.
+    try {
+      await signOut(auth);
+    } catch (_) {
+      // Sem impacto funcional; usuário já recebeu mensagem de erro.
+    }
+
+    return false;
+  }
+}
+
+async function criarPrimeiroUsuario(email, senha) {
+  const usuariosCount = await getCountFromServer(collection(db, "usuarios"));
+  if (usuariosCount.data().count > 0) {
+    alert("Cadastro apenas por convite.");
+    return false;
+  }
+
+  let cred;
+  try {
+    cred = await createUserWithEmailAndPassword(auth, email, senha);
+  } catch (e) {
+    if (e.code === "auth/email-already-in-use") {
+      alert("Este e-mail já está em uso.");
+      return false;
+    }
+    if (e.code === "auth/weak-password") {
+      alert("Senha fraca. Use pelo menos 6 caracteres.");
+      return false;
+    }
+    alert("Erro ao criar conta: " + (e.code || e.message || e));
+    return false;
+  }
+
+  const novoUid = cred.user.uid;
+  const novoUserRef = doc(db, "usuarios", novoUid);
+  const novaMatrizRef = doc(db, "matrizes", novoUid);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const bootstrapSnap = await transaction.get(bootstrapRef);
+      if (bootstrapSnap.exists() && bootstrapSnap.data().inicializado) {
+        throw new Error("bootstrap-ja-realizado");
+      }
+
+      transaction.set(novoUserRef, {
+        uid: novoUid,
+        email,
+        nome: "",
+        parent: null,
+        matrizId: novoUid,
+        slotAtual: "m",
+        status: "open",
+        role: "owner",
+        createdAt: serverTimestamp()
+      });
+
+      transaction.set(novaMatrizRef, {
+        ownerUid: novoUid,
+        parentMatrixOwnerUid: null,
+        slots: { m: novoUid, ma: null, mb: null, maa: null, mab: null, mba: null, mbb: null },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      transaction.set(bootstrapRef, {
+        inicializado: true,
+        rootUid: novoUid,
+        createdAt: serverTimestamp()
+      });
+    });
+
+    return true;
+  } catch (e) {
+    if (auth.currentUser && auth.currentUser.uid === novoUid) {
+      try {
+        await deleteUser(auth.currentUser);
+      } catch (_) {
+        // Evita bloquear o fluxo se a exclusao falhar por regra/permissao.
+      }
+    }
+
+    alert(
+      e.message === "bootstrap-ja-realizado"
+        ? "Cadastro inicial já foi realizado. Use um convite."
+        : "Erro ao criar usuário inicial."
+    );
     return false;
   }
 }
@@ -390,7 +483,9 @@ async function loginReal() {
       return;
     }
 
-    const criado = await criarContaPorConvite(email, senha, ref);
+    const criado = ref
+      ? await criarContaPorConvite(email, senha, ref)
+      : await criarPrimeiroUsuario(email, senha);
     if (criado) {
       window.fecharLogin();
       window.location.href = "dashboard.html";
