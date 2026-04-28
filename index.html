@@ -515,13 +515,24 @@ async function loginReal() {
     window.fecharLogin();
     window.location.href = "dashboard.html";
   } catch (error) {
+    const usuarioNaoEncontrado = error.code === "auth/user-not-found";
+    const senhaInvalida = error.code === "auth/wrong-password";
     const credencialInvalida =
-      error.code === "auth/user-not-found" ||
+      senhaInvalida ||
       error.code === "auth/invalid-credential" ||
-      error.code === "auth/invalid-login-credentials" ||
-      error.code === "auth/wrong-password";
+      error.code === "auth/invalid-login-credentials";
 
-    if (!credencialInvalida) {
+    if (senhaInvalida) {
+      alert("Senha incorreta.");
+      return;
+    }
+
+    if (credencialInvalida && !usuarioNaoEncontrado) {
+      alert("Credenciais inválidas. Verifique e-mail e senha.");
+      return;
+    }
+
+    if (!usuarioNaoEncontrado) {
       alert("Erro no login: " + (error.code || error.message || error));
       return;
     }
