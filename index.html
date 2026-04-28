@@ -291,12 +291,25 @@ function proximoSlotDisponivel(slots) {
   return null;
 }
 
+function normalizarSlots(slots) {
+  const origem = slots || {};
+  return {
+    m: origem.m ?? null,
+    ma: origem.ma ?? null,
+    mb: origem.mb ?? null,
+    maa: origem.maa ?? null,
+    mab: origem.mab ?? null,
+    mba: origem.mba ?? null,
+    mbb: origem.mbb ?? null
+  };
+}
+
 function contarBasePreenchida(slots) {
   return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
 }
 
 function posicionarConvidadoNaBase(slots, novoUid, ownerUid) {
-  const atualizados = { ...(slots || {}) };
+  const atualizados = normalizarSlots(slots);
 
   // Fila lateral da base: novo entra em maa e empurra os demais para direita.
   if (atualizados.mbb) {
@@ -311,7 +324,7 @@ function posicionarConvidadoNaBase(slots, novoUid, ownerUid) {
 }
 
 function promoverDonoQualificado(slots, ownerUid) {
-  const atualizados = { ...(slots || {}) };
+  const atualizados = normalizarSlots(slots);
   const basePreenchida = contarBasePreenchida(atualizados);
   if (basePreenchida < 2) {
     return { slots: atualizados, slotPromovido: null };
@@ -398,7 +411,7 @@ async function criarContaPorConvite(email, senha, refUid) {
 
       const matrizData = matrizSnap.data();
       const { slots: slotsPosicionados, slot } = posicionarConvidadoNaBase(
-        matrizData.slots || {},
+        normalizarSlots(matrizData.slots),
         novoUid,
         refUid
       );
@@ -457,7 +470,7 @@ async function criarContaPorConvite(email, senha, refUid) {
           const ancestorMatrizSnap = await transaction.get(ancestorMatrizRef);
           if (ancestorMatrizSnap.exists()) {
             const ancestorMatrizData = ancestorMatrizSnap.data();
-            const ancestorSlots = { ...(ancestorMatrizData.slots || {}) };
+            const ancestorSlots = normalizarSlots(ancestorMatrizData.slots);
             const jaExisteNaBase = BASE_SLOTS.some((slotKey) => ancestorSlots[slotKey] === novoUid);
             if (!jaExisteNaBase) {
               const { slots: ancestorSlotsPosicionados, slot: ancestorSlot } = posicionarConvidadoNaBase(
