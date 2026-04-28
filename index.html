@@ -527,12 +527,14 @@ async function loginReal() {
       return;
     }
 
-    if (credencialInvalida && !usuarioNaoEncontrado) {
+    const podeTentarCadastroPorConvite = Boolean(ref) && credencialInvalida;
+
+    if (credencialInvalida && !usuarioNaoEncontrado && !podeTentarCadastroPorConvite) {
       alert("Credenciais inválidas. Verifique e-mail e senha.");
       return;
     }
 
-    if (!usuarioNaoEncontrado) {
+    if (!usuarioNaoEncontrado && !podeTentarCadastroPorConvite) {
       alert("Erro no login: " + (error.code || error.message || error));
       return;
     }
