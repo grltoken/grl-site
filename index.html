@@ -325,7 +325,7 @@ function contarBasePreenchida(slots) {
   return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
 }
 
-function posicionarConvidadoNaBase(slots, novoUid, ownerUid) {
+function posicionarConvidadoNaBase(slots, novoUid) {
   const atualizados = normalizarSlots(slots);
 
   // Fila lateral da base: novo entra em maa e empurra os demais para direita.
@@ -429,8 +429,7 @@ async function criarContaPorConvite(email, senha, refUid) {
       const matrizData = matrizSnap.data();
       const { slots: slotsPosicionados, slot } = posicionarConvidadoNaBase(
         normalizarSlots(matrizData.slots),
-        novoUid,
-        refUid
+        novoUid
       );
       if (!slot) throw new Error("matriz-cheia");
       const { slots, slotPromovido } = promoverDonoQualificado(slotsPosicionados, refUid);
@@ -465,58 +464,6 @@ async function criarContaPorConvite(email, senha, refUid) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-
-      // O convidado tambem pontua nas matrizes ancestrais (upline), enquanto houver vaga.
-      let ancestorUid = extrairUid(refData.parent);
-      let matrizOrigemAtual = matrizId;
-      while (ancestorUid) {
-        const ancestorUserRef = doc(db, "usuarios", ancestorUid);
-        const ancestorSnap = await transaction.get(ancestorUserRef);
-        if (!ancestorSnap.exists()) break;
-
-        const ancestorData = ancestorSnap.data();
-        const ancestorMatrizId = extrairUid(ancestorData.matrizId);
-        if (!idDocumentoValido(ancestorMatrizId)) {
-          ancestorUid = extrairUid(ancestorData.parent);
-          continue;
-        }
-
-        // Evita tentativa redundante na mesma matriz que ja recebeu o convidado.
-        if (ancestorMatrizId !== matrizOrigemAtual) {
-          const ancestorMatrizRef = doc(db, "matrizes", ancestorMatrizId);
-          const ancestorMatrizSnap = await transaction.get(ancestorMatrizRef);
-          if (ancestorMatrizSnap.exists()) {
-            const ancestorMatrizData = ancestorMatrizSnap.data();
-            const ancestorSlots = normalizarSlots(ancestorMatrizData.slots);
-            const jaExisteNaBase = BASE_SLOTS.some((slotKey) => ancestorSlots[slotKey] === novoUid);
-            if (!jaExisteNaBase) {
-              const { slots: ancestorSlotsPosicionados, slot: ancestorSlot } = posicionarConvidadoNaBase(
-                ancestorSlots,
-                novoUid,
-                ancestorData.uid || ancestorUid
-              );
-              if (ancestorSlot) {
-                const { slots: ancestorSlotsAtualizados } = promoverDonoQualificado(
-                  ancestorSlotsPosicionados,
-                  extrairUid(ancestorData.uid) || ancestorUid
-                );
-                const basePreenchidaAncestor = contarBasePreenchida(ancestorSlotsAtualizados);
-                const statusAncestor = basePreenchidaAncestor >= 2 ? "qualified" : "open";
-                transaction.update(ancestorMatrizRef, {
-                  slots: ancestorSlotsAtualizados,
-                  updatedAt: serverTimestamp()
-                });
-                transaction.update(ancestorUserRef, {
-                  status: statusAncestor
-                });
-              }
-            }
-          }
-        }
-
-        matrizOrigemAtual = ancestorMatrizId;
-        ancestorUid = extrairUid(ancestorData.parent);
-      }
     });
 
     bloqueiaRedirectAuth = false;
