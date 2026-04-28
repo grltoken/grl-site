@@ -278,6 +278,7 @@ import {
 
 // Regra de entrada: convite ocupa somente a base.
 const SLOT_ORDER = ["maa", "mab", "mba", "mbb"];
+const BASE_SLOTS = ["maa", "mab", "mba", "mbb"];
 const params = new URL(window.location.href).searchParams;
 const ref = (params.get("ref") || "").trim();
 const bootstrapRef = doc(db, "sistema", "bootstrap");
@@ -288,6 +289,10 @@ function proximoSlotDisponivel(slots) {
     if (!slots[slot]) return slot;
   }
   return null;
+}
+
+function contarBasePreenchida(slots) {
+  return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
 }
 
 async function esperarDocumentoUsuario(uid, tentativas = 10, intervaloMs = 250) {
@@ -347,6 +352,8 @@ async function criarContaPorConvite(email, senha, refUid) {
       if (!slot) throw new Error("matriz-cheia");
 
       slots[slot] = novoUid;
+      const basePreenchidaRef = contarBasePreenchida(slots);
+      const statusRef = basePreenchidaRef >= 2 ? "qualified" : "open";
 
       transaction.set(novoUserRef, {
         uid: novoUid,
@@ -364,6 +371,10 @@ async function criarContaPorConvite(email, senha, refUid) {
         updatedAt: serverTimestamp()
       });
 
+      transaction.update(refUserRef, {
+        status: statusRef
+      });
+
       transaction.set(doc(db, "matrizes", novoUid), {
         ownerUid: novoUid,
         parentMatrixOwnerUid: matrizData.ownerUid || refUid,
@@ -371,6 +382,51 @@ async function criarContaPorConvite(email, senha, refUid) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
+
+      // O convidado tambem pontua nas matrizes ancestrais (upline), enquanto houver vaga.
+      let ancestorUid = refData.parent || null;
+      let matrizOrigemAtual = matrizId;
+      while (ancestorUid) {
+        const ancestorUserRef = doc(db, "usuarios", ancestorUid);
+        const ancestorSnap = await transaction.get(ancestorUserRef);
+        if (!ancestorSnap.exists()) break;
+
+        const ancestorData = ancestorSnap.data();
+        const ancestorMatrizId = ancestorData.matrizId;
+        if (!ancestorMatrizId) {
+          ancestorUid = ancestorData.parent || null;
+          continue;
+        }
+
+        // Evita tentativa redundante na mesma matriz que ja recebeu o convidado.
+        if (ancestorMatrizId !== matrizOrigemAtual) {
+          const ancestorMatrizRef = doc(db, "matrizes", ancestorMatrizId);
+          const ancestorMatrizSnap = await transaction.get(ancestorMatrizRef);
+          if (ancestorMatrizSnap.exists()) {
+            const ancestorMatrizData = ancestorMatrizSnap.data();
+            const ancestorSlots = { ...(ancestorMatrizData.slots || {}) };
+            const jaExisteNaBase = BASE_SLOTS.some((slotKey) => ancestorSlots[slotKey] === novoUid);
+            if (!jaExisteNaBase) {
+              const ancestorSlot = proximoSlotDisponivel(ancestorSlots);
+              if (ancestorSlot) {
+                ancestorSlots[ancestorSlot] = novoUid;
+                const basePreenchidaAncestor = contarBasePreenchida(ancestorSlots);
+                const statusAncestor = basePreenchidaAncestor >= 2 ? "qualified" : "open";
+                transaction.update(ancestorMatrizRef, {
+                  slots: ancestorSlots,
+                  updatedAt: serverTimestamp()
+                });
+                transaction.update(ancestorUserRef, {
+                  status: statusAncestor
+                });
+              }
+            }
+          }
+        }
+
+        matrizOrigemAtual = ancestorMatrizId;
+        ancestorUid = ancestorData.parent || null;
+      }
     });
 
     bloqueiaRedirectAuth = false;
