@@ -280,12 +280,23 @@ const SLOT_ORDER = ["ma", "mb", "maa", "mab", "mba", "mbb"];
 const params = new URL(window.location.href).searchParams;
 const ref = (params.get("ref") || "").trim();
 const bootstrapRef = doc(db, "sistema", "bootstrap");
+let bloqueiaRedirectAuth = false;
 
 function proximoSlotDisponivel(slots) {
   for (const slot of SLOT_ORDER) {
     if (!slots[slot]) return slot;
   }
   return null;
+}
+
+async function esperarDocumentoUsuario(uid, tentativas = 10, intervaloMs = 250) {
+  const userRef = doc(db, "usuarios", uid);
+  for (let i = 0; i < tentativas; i++) {
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) return true;
+    await new Promise((resolve) => setTimeout(resolve, intervaloMs));
+  }
+  return false;
 }
 
 async function criarContaPorConvite(email, senha, refUid) {
@@ -296,8 +307,10 @@ async function criarContaPorConvite(email, senha, refUid) {
 
   let cred;
   try {
+    bloqueiaRedirectAuth = true;
     cred = await createUserWithEmailAndPassword(auth, email, senha);
   } catch (e) {
+    bloqueiaRedirectAuth = false;
     if (e.code === "auth/email-already-in-use") {
       alert("Este e-mail já está em uso.");
       return false;
@@ -359,12 +372,25 @@ async function criarContaPorConvite(email, senha, refUid) {
       });
     });
 
+    bloqueiaRedirectAuth = false;
     return true;
   } catch (e) {
+    if (auth.currentUser && auth.currentUser.uid === novoUid) {
+      try {
+        await deleteUser(auth.currentUser);
+      } catch (_) {
+        // Se nao conseguir excluir no Auth, ao menos evita ficar logado.
+      }
+    }
+
     alert(
       e.message === "matriz-cheia"
         ? "Matriz do convite está cheia."
-        : "Erro ao posicionar na matriz."
+        : e.message === "convite-invalido"
+          ? "Convite inválido."
+          : e.message === "ref-sem-matriz" || e.message === "matriz-inexistente"
+            ? "Convite com dados incompletos."
+            : "Erro ao posicionar na matriz. Verifique regras do Firestore."
     );
 
     // Evita sessão autenticada sem documentos no Firestore.
@@ -374,6 +400,7 @@ async function criarContaPorConvite(email, senha, refUid) {
       // Sem impacto funcional; usuário já recebeu mensagem de erro.
     }
 
+    bloqueiaRedirectAuth = false;
     return false;
   }
 }
@@ -387,8 +414,10 @@ async function criarPrimeiroUsuario(email, senha) {
 
   let cred;
   try {
+    bloqueiaRedirectAuth = true;
     cred = await createUserWithEmailAndPassword(auth, email, senha);
   } catch (e) {
+    bloqueiaRedirectAuth = false;
     if (e.code === "auth/email-already-in-use") {
       alert("Este e-mail já está em uso.");
       return false;
@@ -439,6 +468,7 @@ async function criarPrimeiroUsuario(email, senha) {
       });
     });
 
+    bloqueiaRedirectAuth = false;
     return true;
   } catch (e) {
     if (auth.currentUser && auth.currentUser.uid === novoUid) {
@@ -454,6 +484,7 @@ async function criarPrimeiroUsuario(email, senha) {
         ? "Cadastro inicial já foi realizado. Use um convite."
         : "Erro ao criar usuário inicial."
     );
+    bloqueiaRedirectAuth = false;
     return false;
   }
 }
@@ -469,6 +500,12 @@ async function loginReal() {
 
   try {
     await signInWithEmailAndPassword(auth, email, senha);
+    const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "", 6, 200);
+    if (!existeDocUsuario) {
+      await signOut(auth);
+      alert("Conta sem registro no Firestore. Tente cadastrar novamente pelo convite.");
+      return;
+    }
     window.fecharLogin();
     window.location.href = "dashboard.html";
   } catch (error) {
@@ -487,6 +524,12 @@ async function loginReal() {
       ? await criarContaPorConvite(email, senha, ref)
       : await criarPrimeiroUsuario(email, senha);
     if (criado) {
+      const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "");
+      if (!existeDocUsuario) {
+        await signOut(auth);
+        alert("Cadastro incompleto no Firestore. Refaça o cadastro pelo convite.");
+        return;
+      }
       window.fecharLogin();
       window.location.href = "dashboard.html";
     }
@@ -496,7 +539,15 @@ async function loginReal() {
 window.login = loginReal;
 
 onAuthStateChanged(auth, async (user) => {
+  if (bloqueiaRedirectAuth) return;
   if (!user) return;
+  const existeDocUsuario = await esperarDocumentoUsuario(user.uid, 4, 150);
+  if (!existeDocUsuario) {
+    try {
+      await signOut(auth);
+    } catch (_) {}
+    return;
+  }
   window.location.href = "dashboard.html";
 });
 </script>
