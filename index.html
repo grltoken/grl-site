@@ -276,7 +276,8 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const SLOT_ORDER = ["ma", "mb", "maa", "mab", "mba", "mbb"];
+// Regra de entrada: convite ocupa somente a base.
+const SLOT_ORDER = ["maa", "mab", "mba", "mbb"];
 const params = new URL(window.location.href).searchParams;
 const ref = (params.get("ref") || "").trim();
 const bootstrapRef = doc(db, "sistema", "bootstrap");
@@ -406,8 +407,13 @@ async function criarContaPorConvite(email, senha, refUid) {
 }
 
 async function criarPrimeiroUsuario(email, senha) {
-  const usuariosCount = await getCountFromServer(collection(db, "usuarios"));
-  if (usuariosCount.data().count > 0) {
+  try {
+    const usuariosCount = await getCountFromServer(collection(db, "usuarios"));
+    if (usuariosCount.data().count > 0) {
+      alert("Cadastro apenas por convite.");
+      return false;
+    }
+  } catch (_) {
     alert("Cadastro apenas por convite.");
     return false;
   }
