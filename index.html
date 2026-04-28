@@ -517,8 +517,8 @@ async function loginReal() {
   } catch (error) {
     const usuarioNaoEncontrado = error.code === "auth/user-not-found";
     const senhaInvalida = error.code === "auth/wrong-password";
+    const temConvite = Boolean(ref);
     const credencialInvalida =
-      senhaInvalida ||
       error.code === "auth/invalid-credential" ||
       error.code === "auth/invalid-login-credentials";
 
@@ -527,19 +527,18 @@ async function loginReal() {
       return;
     }
 
-    const podeTentarCadastroPorConvite = Boolean(ref) && credencialInvalida;
-
-    if (credencialInvalida && !usuarioNaoEncontrado && !podeTentarCadastroPorConvite) {
+    // Com convite, qualquer falha de login (exceto senha errada) tenta cadastro.
+    if (!temConvite && credencialInvalida && !usuarioNaoEncontrado) {
       alert("Credenciais inválidas. Verifique e-mail e senha.");
       return;
     }
 
-    if (!usuarioNaoEncontrado && !podeTentarCadastroPorConvite) {
+    if (!temConvite && !usuarioNaoEncontrado) {
       alert("Erro no login: " + (error.code || error.message || error));
       return;
     }
 
-    const criado = ref
+    const criado = temConvite
       ? await criarContaPorConvite(email, senha, ref)
       : await criarPrimeiroUsuario(email, senha);
     if (criado) {
