@@ -295,6 +295,56 @@ function contarBasePreenchida(slots) {
   return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
 }
 
+function posicionarConvidadoNaBase(slots, novoUid, ownerUid) {
+  const atualizados = { ...(slots || {}) };
+
+  // Fila lateral da base: novo entra em maa e empurra os demais para direita.
+  if (atualizados.mbb) {
+    return { slots: atualizados, slot: null };
+  }
+
+  atualizados.mbb = atualizados.mba || null;
+  atualizados.mba = atualizados.mab || null;
+  atualizados.mab = atualizados.maa || null;
+  atualizados.maa = novoUid;
+  return { slots: atualizados, slot: "maa" };
+}
+
+function promoverDonoQualificado(slots, ownerUid) {
+  const atualizados = { ...(slots || {}) };
+  const basePreenchida = contarBasePreenchida(atualizados);
+  if (basePreenchida < 2) {
+    return { slots: atualizados, slotPromovido: null };
+  }
+
+  const slotBaseDono = BASE_SLOTS.find((slot) => atualizados[slot] === ownerUid);
+  if (!slotBaseDono) {
+    return { slots: atualizados, slotPromovido: null };
+  }
+
+  if (!atualizados.ma) {
+    atualizados.ma = ownerUid;
+    atualizados[slotBaseDono] = null;
+    return { slots: atualizados, slotPromovido: "ma" };
+  }
+
+  if (atualizados.ma === ownerUid) {
+    return { slots: atualizados, slotPromovido: "ma" };
+  }
+
+  if (!atualizados.mb) {
+    atualizados.mb = ownerUid;
+    atualizados[slotBaseDono] = null;
+    return { slots: atualizados, slotPromovido: "mb" };
+  }
+
+  if (atualizados.mb === ownerUid) {
+    return { slots: atualizados, slotPromovido: "mb" };
+  }
+
+  return { slots: atualizados, slotPromovido: null };
+}
+
 async function esperarDocumentoUsuario(uid, tentativas = 10, intervaloMs = 250) {
   const userRef = doc(db, "usuarios", uid);
   for (let i = 0; i < tentativas; i++) {
@@ -347,11 +397,13 @@ async function criarContaPorConvite(email, senha, refUid) {
       if (!matrizSnap.exists()) throw new Error("matriz-inexistente");
 
       const matrizData = matrizSnap.data();
-      const slots = { ...(matrizData.slots || {}) };
-      const slot = proximoSlotDisponivel(slots);
+      const { slots: slotsPosicionados, slot } = posicionarConvidadoNaBase(
+        matrizData.slots || {},
+        novoUid,
+        refUid
+      );
       if (!slot) throw new Error("matriz-cheia");
-
-      slots[slot] = novoUid;
+      const { slots, slotPromovido } = promoverDonoQualificado(slotsPosicionados, refUid);
       const basePreenchidaRef = contarBasePreenchida(slots);
       const statusRef = basePreenchidaRef >= 2 ? "qualified" : "open";
 
@@ -372,7 +424,8 @@ async function criarContaPorConvite(email, senha, refUid) {
       });
 
       transaction.update(refUserRef, {
-        status: statusRef
+        status: statusRef,
+        slotAtual: slotPromovido || refData.slotAtual || "maa"
       });
 
       transaction.set(doc(db, "matrizes", novoUid), {
@@ -407,13 +460,20 @@ async function criarContaPorConvite(email, senha, refUid) {
             const ancestorSlots = { ...(ancestorMatrizData.slots || {}) };
             const jaExisteNaBase = BASE_SLOTS.some((slotKey) => ancestorSlots[slotKey] === novoUid);
             if (!jaExisteNaBase) {
-              const ancestorSlot = proximoSlotDisponivel(ancestorSlots);
+              const { slots: ancestorSlotsPosicionados, slot: ancestorSlot } = posicionarConvidadoNaBase(
+                ancestorSlots,
+                novoUid,
+                ancestorData.uid || ancestorUid
+              );
               if (ancestorSlot) {
-                ancestorSlots[ancestorSlot] = novoUid;
-                const basePreenchidaAncestor = contarBasePreenchida(ancestorSlots);
+                const { slots: ancestorSlotsAtualizados } = promoverDonoQualificado(
+                  ancestorSlotsPosicionados,
+                  ancestorData.uid || ancestorUid
+                );
+                const basePreenchidaAncestor = contarBasePreenchida(ancestorSlotsAtualizados);
                 const statusAncestor = basePreenchidaAncestor >= 2 ? "qualified" : "open";
                 transaction.update(ancestorMatrizRef, {
-                  slots: ancestorSlots,
+                  slots: ancestorSlotsAtualizados,
                   updatedAt: serverTimestamp()
                 });
                 transaction.update(ancestorUserRef, {
@@ -432,6 +492,7 @@ async function criarContaPorConvite(email, senha, refUid) {
     bloqueiaRedirectAuth = false;
     return true;
   } catch (e) {
+    const erroFirestore = e?.code || e?.message || String(e);
     if (auth.currentUser && auth.currentUser.uid === novoUid) {
       try {
         await deleteUser(auth.currentUser);
@@ -447,7 +508,7 @@ async function criarContaPorConvite(email, senha, refUid) {
           ? "Convite inválido."
           : e.message === "ref-sem-matriz" || e.message === "matriz-inexistente"
             ? "Convite com dados incompletos."
-            : "Erro ao posicionar na matriz. Verifique regras do Firestore."
+            : "Erro ao posicionar na matriz (" + erroFirestore + ")."
     );
 
     // Evita sessão autenticada sem documentos no Firestore.
