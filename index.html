@@ -284,6 +284,10 @@ const ref = (params.get("ref") || "").trim();
 const bootstrapRef = doc(db, "sistema", "bootstrap");
 let bloqueiaRedirectAuth = false;
 
+function idDocumentoValido(id) {
+  return typeof id === "string" && id.trim().length > 0;
+}
+
 function proximoSlotDisponivel(slots) {
   for (const slot of SLOT_ORDER) {
     if (!slots[slot]) return slot;
@@ -403,7 +407,7 @@ async function criarContaPorConvite(email, senha, refUid) {
 
       const refData = refSnap.data();
       const matrizId = refData.matrizId;
-      if (!matrizId) throw new Error("ref-sem-matriz");
+      if (!idDocumentoValido(matrizId)) throw new Error("ref-sem-matriz");
 
       const matrizRef = doc(db, "matrizes", matrizId);
       const matrizSnap = await transaction.get(matrizRef);
@@ -443,7 +447,7 @@ async function criarContaPorConvite(email, senha, refUid) {
 
       transaction.set(doc(db, "matrizes", novoUid), {
         ownerUid: novoUid,
-        parentMatrixOwnerUid: matrizData.ownerUid || refUid,
+        parentMatrixOwnerUid: idDocumentoValido(matrizData.ownerUid) ? matrizData.ownerUid : refUid,
         slots: { m: null, ma: null, mb: null, maa: novoUid, mab: null, mba: null, mbb: null },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -459,7 +463,7 @@ async function criarContaPorConvite(email, senha, refUid) {
 
         const ancestorData = ancestorSnap.data();
         const ancestorMatrizId = ancestorData.matrizId;
-        if (!ancestorMatrizId) {
+        if (!idDocumentoValido(ancestorMatrizId)) {
           ancestorUid = ancestorData.parent || null;
           continue;
         }
