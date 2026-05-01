@@ -457,9 +457,11 @@ const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
         matrizId: novoUid,
         slotAtual: "maa",
         status: "open",
+        convidadosCount: 0,
+        convidadosDiretos: [],
         createdAt: serverTimestamp()
       });
-
+      
       transaction.update(matrizRef, {
         slots,
         updatedAt: serverTimestamp()
