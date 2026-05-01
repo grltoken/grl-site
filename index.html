@@ -470,6 +470,8 @@ const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
       transaction.update(refUserRef, {
         status: statusRef,
         slotAtual: slotPromovido || refData.slotAtual || "maa"
+     convidadosCount: novoConvidadosCount,
+  convidadosDiretos: arrayUnion(novoUid)
       });
 
       transaction.set(doc(db, "matrizes", novoUid), {
