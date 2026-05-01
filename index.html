@@ -273,11 +273,9 @@ import {
   getCountFromServer,
   getDoc,
   runTransaction,
-  serverTimestamp,
-  updateDoc,
-  increment,
-  arrayUnion
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 // Regra de entrada: convite ocupa somente a base.
 const SLOT_ORDER = ["maa", "mab", "mba", "mbb"];
 const BASE_SLOTS = ["maa", "mab", "mba", "mbb"];
@@ -434,21 +432,10 @@ async function criarContaPorConvite(email, senha, refUid) {
         novoUid
       );
       if (!slot) throw new Error("matriz-cheia");
+      const { slots, slotPromovido } = promoverDonoQualificado(slotsPosicionados, refUid);
+      const basePreenchidaRef = contarBasePreenchida(slots);
+      const statusRef = basePreenchidaRef >= 2 ? "qualified" : "open";
 
-const convidadosAtuais = refData.convidadosCount || 0;
-const novoConvidadosCount = convidadosAtuais + 1;
-
-let slots = slotsPosicionados;
-let slotPromovido = null;
-
-// SÓ PROMOVE COM 2 CONVIDADOS
-if (novoConvidadosCount >= 2) {
-  const resultado = promoverDonoQualificado(slotsPosicionados, refUid);
-  slots = resultado.slots;
-  slotPromovido = resultado.slotPromovido;
-}
-
-const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
       transaction.set(novoUserRef, {
         uid: novoUid,
         email,
@@ -457,11 +444,9 @@ const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
         matrizId: novoUid,
         slotAtual: "maa",
         status: "open",
-        convidadosCount: 0,
-        convidadosDiretos: [],
         createdAt: serverTimestamp()
       });
-      
+
       transaction.update(matrizRef, {
         slots,
         updatedAt: serverTimestamp()
@@ -469,9 +454,7 @@ const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
 
       transaction.update(refUserRef, {
         status: statusRef,
-        slotAtual: slotPromovido || refData.slotAtual || "maa",
-     convidadosCount: novoConvidadosCount,
-  convidadosDiretos: arrayUnion(novoUid)
+        slotAtual: slotPromovido || refData.slotAtual || "maa"
       });
 
       transaction.set(doc(db, "matrizes", novoUid), {
