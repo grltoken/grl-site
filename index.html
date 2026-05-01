@@ -273,9 +273,11 @@ import {
   getCountFromServer,
   getDoc,
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
+  updateDoc,
+  increment,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 // Regra de entrada: convite ocupa somente a base.
 const SLOT_ORDER = ["maa", "mab", "mba", "mbb"];
 const BASE_SLOTS = ["maa", "mab", "mba", "mbb"];
