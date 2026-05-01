@@ -434,10 +434,21 @@ async function criarContaPorConvite(email, senha, refUid) {
         novoUid
       );
       if (!slot) throw new Error("matriz-cheia");
-      const { slots, slotPromovido } = promoverDonoQualificado(slotsPosicionados, refUid);
-      const basePreenchidaRef = contarBasePreenchida(slots);
-      const statusRef = basePreenchidaRef >= 2 ? "qualified" : "open";
 
+const convidadosAtuais = refData.convidadosCount || 0;
+const novoConvidadosCount = convidadosAtuais + 1;
+
+let slots = slotsPosicionados;
+let slotPromovido = null;
+
+// SÓ PROMOVE COM 2 CONVIDADOS
+if (novoConvidadosCount >= 2) {
+  const resultado = promoverDonoQualificado(slotsPosicionados, refUid);
+  slots = resultado.slots;
+  slotPromovido = resultado.slotPromovido;
+}
+
+const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
       transaction.set(novoUserRef, {
         uid: novoUid,
         email,
