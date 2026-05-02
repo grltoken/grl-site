@@ -446,7 +446,9 @@ if (novoConvidadosCount >= 2) {
 }
 
 const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
-const matrizesAscendentes = [];
+const matrizesAscendentes = [
+  { ref: matrizRef, data: matrizData }
+];
 
 let parentUid = matrizData.parentMatrixOwnerUid;
 
@@ -477,10 +479,11 @@ while (parentUid) {
       });
       
       transaction.update(refUserRef, {
-        status: statusRef,
-        slotAtual: slotPromovido || refData.slotAtual || "maa"
-      });
-
+  status: statusRef,
+  slotAtual: slotPromovido || refData.slotAtual || "maa",
+  convidadosCount: novoConvidadosCount,
+  convidadosDiretos: arrayUnion(novoUid)
+});
       transaction.set(doc(db, "matrizes", novoUid), {
         ownerUid: novoUid,
         parentMatrixOwnerUid: extrairUid(matrizData.ownerUid) || refUid,
@@ -488,6 +491,17 @@ while (parentUid) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
+      for (const item of matrizesAscendentes) {
+  const { slots: novosSlots } = posicionarConvidadoNaBase(
+    normalizarSlots(item.data.slots),
+    novoUid
+  );
+
+  transaction.update(item.ref, {
+    slots: novosSlots,
+    updatedAt: serverTimestamp()
+  });
+}
     });
 
     bloqueiaRedirectAuth = false;
