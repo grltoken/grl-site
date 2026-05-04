@@ -493,11 +493,18 @@ while (parentUid) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-      for (const item of matrizesAscendentes) {
-  const { slots: novosSlots } = posicionarConvidadoNaBase(
-    normalizarSlots(item.data.slots),
-    novoUid
-  );
+for (const item of matrizesAscendentes) {
+  let novosSlots;
+
+  if (item.ref.path === matrizRef.path) {
+    novosSlots = slots;
+  } else {
+    const resultadoAscendente = posicionarConvidadoNaBase(
+      normalizarSlots(item.data.slots),
+      novoUid
+    );
+    novosSlots = resultadoAscendente.slots;
+  }
 
   transaction.update(item.ref, {
     slots: novosSlots,
