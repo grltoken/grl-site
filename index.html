@@ -432,7 +432,9 @@ async function criarContaPorConvite(email, senha, refUid) {
         normalizarSlots(matrizData.slots),
         novoUid
       );
-      if (!slot) throw new Error("matriz-cheia");
+      if (!slot) {
+  console.log("Sem vaga na matriz. Seguindo sem posicionar.");
+}
       const convidadosAtuais = refData.convidadosCount || 0;
 const novoConvidadosCount = convidadosAtuais + 1;
 
