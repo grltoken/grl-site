@@ -497,8 +497,12 @@ for (const item of matrizesAscendentes) {
   let novosSlots;
 
   if (item.ref.path === matrizRef.path) {
-    novosSlots = slots;
-  } else {
+  const resultadoPrincipal = promoverDonoQualificado(
+    slots,
+    item.data.ownerUid
+  );
+  novosSlots = resultadoPrincipal.slots;
+} else {
     const resultadoAscendente = posicionarConvidadoNaBase(
       normalizarSlots(item.data.slots),
       novoUid
