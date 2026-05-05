@@ -387,9 +387,11 @@ onAuthStateChanged(auth, async (user)=>{
       marcarMinhaPosicao("maa");
     }
 
-    const slotsProgressao = ["ma", "mb", "maa", "mab", "mba", "mbb"];
-    const totalFechados = slotsProgressao.filter((slotKey)=>Boolean(slots[slotKey])).length;
-    const topoStatus = slots.m ? "ocupado" : "vazio";
+   const convidadosDiretos = Array.isArray(data.convidadosDiretos)
+  ? data.convidadosDiretos.length
+  : Number(data.convidadosCount || 0);
+
+const topoStatus = slots.m ? "ocupado" : "vazio";
 
     info.innerHTML = `
       <p><b>${data.nome || "Usuário"}</b></p>
@@ -399,7 +401,7 @@ onAuthStateChanged(auth, async (user)=>{
       <p>Matriz: ${matrizId}</p>
       <p>Minha posição detectada: ${minhaPosicaoDetectada || "não encontrada"}</p>
       <p>Topo (m): ${topoStatus}</p>
-      <p>Posições de progressão ocupadas: ${totalFechados}/6</p>
+      <p>Convidados diretos: ${convidadosDiretos}/2</p>
     `;
   }catch(error){
     console.error("ERRO DASHBOARD:", error);
