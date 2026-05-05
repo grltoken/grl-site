@@ -504,8 +504,14 @@ for (const item of matrizesAscendentes) {
       novoUid
     );
     novosSlots = resultadoAscendente.slots;
+    
   }
+const resultadoPromocao = promoverDonoQualificado(
+  novosSlots,
+  item.data.ownerUid
+);
 
+novosSlots = resultadoPromocao.slots;
   transaction.update(item.ref, {
     slots: novosSlots,
     updatedAt: serverTimestamp()
