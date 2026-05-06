@@ -420,10 +420,13 @@ async function criarContaPorConvite(email, senha, refUid) {
       if (!refSnap.exists()) throw new Error("convite-invalido");
 
       const refData = refSnap.data();
-      const matrizId = extrairUid(refData.matrizId);
-      if (!idDocumentoValido(matrizId)) throw new Error("ref-sem-matriz");
+      const matrizId = refUid;
 
-      const matrizRef = doc(db, "matrizes", matrizId);
+if (!idDocumentoValido(matrizId)) {
+  throw new Error("ref-sem-matriz");
+}
+
+const matrizRef = doc(db, "matrizes", matrizId);
       const matrizSnap = await transaction.get(matrizRef);
       if (!matrizSnap.exists()) throw new Error("matriz-inexistente");
 
