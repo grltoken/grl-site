@@ -503,13 +503,8 @@ for (const item of matrizesAscendentes) {
   );
   novosSlots = resultadoPrincipal.slots;
 } else {
-    const resultadoAscendente = posicionarConvidadoNaBase(
-      normalizarSlots(item.data.slots),
-      novoUid
-    );
-    novosSlots = resultadoAscendente.slots;
-    
-  }
+  novosSlots = normalizarSlots(item.data.slots);
+}
 
   transaction.update(item.ref, {
     slots: novosSlots,
