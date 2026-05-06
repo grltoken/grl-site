@@ -389,30 +389,14 @@ onAuthStateChanged(auth, async (user)=>{
       }
     });
 
-    if(!minhaPosicaoDetectada && data.slotAtual){
-      minhaPosicaoDetectada = data.slotAtual;
-      marcarMinhaPosicao(data.slotAtual);
-    }
-
- const posicaoOficial = data.slotAtual || null;
-
-const posicaoNosSlots = Object.keys(slots).find(
+   const posicaoNosSlots = Object.keys(slots).find(
   (slotKey) => String(slots[slotKey]) === String(user.uid)
 );
 
-if(posicaoOficial){
-  minhaPosicaoDetectada = posicaoOficial;
-  marcarMinhaPosicao(posicaoOficial);
+if(posicaoNosSlots){
+  minhaPosicaoDetectada = posicaoNosSlots;
+  marcarMinhaPosicao(posicaoNosSlots);
 }
-
-if(posicaoNosSlots && posicaoOficial && posicaoNosSlots !== posicaoOficial){
-  console.warn("INCONSISTÊNCIA DE POSIÇÃO:", {
-    uid: user.uid,
-    posicaoOficial,
-    posicaoNosSlots
-  });
-}
-
    const convidadosDiretos = Array.isArray(data.convidadosDiretos)
   ? data.convidadosDiretos.length
   : Number(data.convidadosCount || 0);
