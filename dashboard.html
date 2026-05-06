@@ -395,7 +395,6 @@ onAuthStateChanged(auth, async (user)=>{
     }
 
     if(!minhaPosicaoDetectada && matrizData.ownerUid && String(matrizData.ownerUid) === String(user.uid)){
-  // Usa a posição real do usuário
   minhaPosicaoDetectada = data.slotAtual || "m";
   marcarMinhaPosicao(minhaPosicaoDetectada);
 }
