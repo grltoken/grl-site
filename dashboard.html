@@ -404,10 +404,6 @@ if(posicaoNosSlots){
 
 const posicaoOficial = data.slotAtual || null;
 
-const posicaoNosSlots = Object.keys(slots).find(
-  (slotKey) => String(slots[slotKey]) === String(user.uid)
-);
-
 if(posicaoOficial){
   minhaPosicaoDetectada = posicaoOficial;
   marcarMinhaPosicao(posicaoOficial);
