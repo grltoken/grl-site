@@ -253,7 +253,16 @@ function marcarMinhaPosicao(slot){
   }
   el.classList.add("on", "eu");
 }
+function marcarQualificado(slot){
+  const slotId = String(slot || "").trim().toLowerCase();
+  const el = document.getElementById(slotId);
 
+  if(!el){
+    return;
+  }
+
+  el.classList.add("qualified");
+}
 function slotPertenceAoUsuario(slotValue, uid){
   if(!slotValue || !uid) return false;
   if(String(slotValue) === String(uid)) return true;
