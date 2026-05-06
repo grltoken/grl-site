@@ -500,10 +500,15 @@ for (const item of matrizesAscendentes) {
   let novosSlots;
 
   if (item.ref.path === matrizRef.path) {
-  novosSlots = slots;
-} else {
-  novosSlots = normalizarSlots(item.data.slots);
-}
+    novosSlots = slots;
+  } else {
+    const resultadoAscendente = posicionarConvidadoNaBase(
+      normalizarSlots(item.data.slots),
+      novoUid
+    );
+
+    novosSlots = resultadoAscendente.slots;
+  }
 
   transaction.update(item.ref, {
     slots: novosSlots,
