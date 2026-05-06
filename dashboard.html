@@ -395,10 +395,10 @@ onAuthStateChanged(auth, async (user)=>{
     }
 
     if(!minhaPosicaoDetectada && matrizData.ownerUid && String(matrizData.ownerUid) === String(user.uid)){
-      // Em algumas contas antigas, o dono da matriz não tem slot persistido.
-      minhaPosicaoDetectada = "maa";
-      marcarMinhaPosicao("maa");
-    }
+  // Usa a posição real do usuário
+  minhaPosicaoDetectada = data.slotAtual || "m";
+  marcarMinhaPosicao(minhaPosicaoDetectada);
+}
 
    const convidadosDiretos = Array.isArray(data.convidadosDiretos)
   ? data.convidadosDiretos.length
