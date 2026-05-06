@@ -394,9 +394,23 @@ onAuthStateChanged(auth, async (user)=>{
       marcarMinhaPosicao(data.slotAtual);
     }
 
-    if(!minhaPosicaoDetectada && matrizData.ownerUid && String(matrizData.ownerUid) === String(user.uid)){
-  minhaPosicaoDetectada = data.slotAtual || "m";
-  marcarMinhaPosicao(minhaPosicaoDetectada);
+ const posicaoOficial = data.slotAtual || null;
+
+const posicaoNosSlots = Object.keys(slots).find(
+  (slotKey) => String(slots[slotKey]) === String(user.uid)
+);
+
+if(posicaoOficial){
+  minhaPosicaoDetectada = posicaoOficial;
+  marcarMinhaPosicao(posicaoOficial);
+}
+
+if(posicaoNosSlots && posicaoOficial && posicaoNosSlots !== posicaoOficial){
+  console.warn("INCONSISTÊNCIA DE POSIÇÃO:", {
+    uid: user.uid,
+    posicaoOficial,
+    posicaoNosSlots
+  });
 }
 
    const convidadosDiretos = Array.isArray(data.convidadosDiretos)
