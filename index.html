@@ -500,11 +500,7 @@ for (const item of matrizesAscendentes) {
   let novosSlots;
 
   if (item.ref.path === matrizRef.path) {
-  const resultadoPrincipal = promoverDonoQualificado(
-    slots,
-    item.data.ownerUid
-  );
-  novosSlots = resultadoPrincipal.slots;
+  novosSlots = slots;
 } else {
   novosSlots = normalizarSlots(item.data.slots);
 }
