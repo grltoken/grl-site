@@ -237,7 +237,9 @@ function marcar(slot, uid, meuUid){
     console.warn("slot-html-nao-encontrado:", slotId);
     return;
   }
-
+if(String(uid) === String(meuUid)){
+  el.classList.add("eu");
+}
   el.classList.add("on");
 }
 
@@ -389,18 +391,18 @@ onAuthStateChanged(auth, async (user)=>{
   (slotKey) => String(slots[slotKey]) === String(user.uid)
 );
 
-if(posicaoNosSlots && posicaoNosSlots !== "maa"){
+if(posicaoNosSlots){
   minhaPosicaoDetectada = posicaoNosSlots;
   marcarMinhaPosicao(posicaoNosSlots);
 }
-   if(!minhaPosicaoDetectada && data.slotAtual && data.slotAtual !== "maa"){
+   if(!minhaPosicaoDetectada && data.slotAtual){
   minhaPosicaoDetectada = data.slotAtual;
   marcarMinhaPosicao(data.slotAtual);
 }
 
 const posicaoOficial = data.slotAtual || null;
 
-if(posicaoOficial && posicaoOficial !== "maa"){
+if(posicaoOficial){
   minhaPosicaoDetectada = posicaoOficial;
   marcarMinhaPosicao(posicaoOficial);
 }
