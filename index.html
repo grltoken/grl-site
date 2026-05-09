@@ -512,9 +512,9 @@ while (parentUid) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-for (const item of matrizesAscendentes) {
+const mudancasSlot = [];
+      for (const item of matrizesAscendentes) {
   let novosSlots;
-
   if (item.ref.path === matrizRef.path) {
     novosSlots = slots;
   } else {
@@ -525,12 +525,31 @@ for (const item of matrizesAscendentes) {
 
     novosSlots = resultadoAscendente.slots;
   }
+const slotsAntigos = normalizarSlots(item.data.slots);
+const mudancasDaVez = extrairMudancasDeSlot(slotsAntigos, novosSlots);
 
+for (const mudanca of mudancasDaVez) {
+  const idx = mudancasSlot.findIndex((x) => x.uid === mudanca.uid);
+
+  if (idx >= 0) {
+    mudancasSlot[idx] = mudanca;
+  } else {
+    mudancasSlot.push(mudanca);
+  }
+}
   transaction.update(item.ref, {
     slots: novosSlots,
     updatedAt: serverTimestamp()
   });
 }
+for (const { uid, novoSlot } of mudancasSlot) {
+  const usuarioRef = doc(db, "usuarios", uid);
+
+  transaction.update(usuarioRef, {
+    slotAtual: novoSlot,
+    updatedAt: serverTimestamp()
+  });
+}      
     });
 
     bloqueiaRedirectAuth = false;
