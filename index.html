@@ -661,7 +661,7 @@ async function criarPrimeiroUsuario(email, senha) {
       try {
         await deleteUser(auth.currentUser);
       } catch (_) {
-        // Evita bloquear o fluxo se a exclusao falhar por regra/permissao.
+        
       }
     }
 
