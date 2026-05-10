@@ -325,7 +325,20 @@ function normalizarSlots(slots) {
 function contarBasePreenchida(slots) {
   return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
 }
-function extrairMudancasDeSlot(slotsAntigos, slotsNovos) {
+function compactarBase(slots) {
+  const atualizados = normalizarSlots(slots);
+
+  const ocupantes = BASE_SLOTS
+    .map((slot) => atualizados[slot])
+    .filter(Boolean);
+
+  BASE_SLOTS.forEach((slot, index) => {
+    atualizados[slot] = ocupantes[index] || null;
+  });
+
+  return atualizados;
+}
+  function extrairMudancasDeSlot(slotsAntigos, slotsNovos) {
   const mudancas = [];
   const todosSlots = ["m", "ma", "mb", "maa", "mab", "mba", "mbb"];
 
