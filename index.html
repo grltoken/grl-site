@@ -385,7 +385,8 @@ function promoverDonoQualificado(slots, ownerUid) {
   if (!atualizados.ma) {
     atualizados.ma = ownerUid;
     atualizados[slotBaseDono] = null;
-    return { slots: atualizados, slotPromovido: "ma" };
+    const compactados = compactarBase(atualizados);
+    return { slots: compactados, slotPromovido: "ma" };
   }
 
   if (atualizados.ma === ownerUid) {
