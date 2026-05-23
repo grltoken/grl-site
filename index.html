@@ -171,37 +171,32 @@ circle.on{
   <circle id="m" cx="240" cy="60" r="8"/>
 </svg>
 
-  <div id="loginModal">
-    <div class="modal-box">
-      <h2>Entrar na Matriz</h2>
-      <input id="email" type="email" placeholder="Email">
-      <input id="senha" type="password" placeholder="Senha">
-      <div class="modal-row">
-        <button onclick="login()">Entrar</button>
-        <button onclick="fecharLogin()">Fechar</button>
-      </div>
+<div id="loginModal">
+  <div class="modal-box">
+    <h2>Entrar na Matriz</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="senha" type="password" placeholder="Senha">
+    <div class="modal-row">
+      <button onclick="login()">Entrar</button>
+      <button onclick="fecharLogin()">Fechar</button>
     </div>
   </div>
+</div>
 
 <script>
-const nodes = {
-  b1: document.getElementById("maa"),
-  b2: document.getElementById("mab"),
-  b3: document.getElementById("mba"),
-  b4: document.getElementById("mbb"),
-  m1: document.getElementById("ma"),
-  m2: document.getElementById("mb"),
-  top: document.getElementById("m")
-};
-
 const title = document.getElementById("title");
 const text = "MASTERMINDs";
 
-function show(id){ nodes[id].classList.add("on"); }
-function hide(id){ nodes[id].classList.remove("on"); }
+function show(id){
+  document.getElementById(id)?.classList.add("on");
+}
+
+function hide(id){
+  document.getElementById(id)?.classList.remove("on");
+}
 
 function reset(){
-  Object.keys(nodes).forEach(hide);
+  ["maa", "mab", "mba", "mbb", "ma", "mb", "m"].forEach(hide);
 }
 
 function typeText(){
@@ -217,14 +212,14 @@ function typeText(){
 function run(){
   reset();
   title.innerHTML = "";
-  setTimeout(()=>{show("b1");}, 400);
-  setTimeout(()=>{hide("b1");}, 1100);
-  setTimeout(()=>{show("m1");}, 1300);
-  setTimeout(()=>{show("b1"); show("b2");}, 2000);
-  setTimeout(()=>{hide("m1"); hide("b1"); hide("b2");}, 2600);
-  setTimeout(()=>{show("top");}, 2800);
-  setTimeout(()=>{show("m1"); show("m2");}, 3600);
-  setTimeout(()=>{show("b1"); show("b2"); show("b3"); show("b4");}, 4500);
+  setTimeout(()=>{show("maa");}, 400);
+  setTimeout(()=>{hide("maa");}, 1100);
+  setTimeout(()=>{show("ma");}, 1300);
+  setTimeout(()=>{show("maa"); show("mab");}, 2000);
+  setTimeout(()=>{hide("ma"); hide("maa"); hide("mab");}, 2600);
+  setTimeout(()=>{show("m");}, 2800);
+  setTimeout(()=>{show("ma"); show("mb");}, 3600);
+  setTimeout(()=>{show("maa"); show("mab"); show("mba"); show("mbb");}, 4500);
   setTimeout(()=>{reset();}, 5800);
   setTimeout(()=>{typeText();}, 6500);
 }
@@ -234,25 +229,24 @@ setInterval(run, 9000);
 </script>
 
 <script>
-function abrirLogin() {
+function abrirLogin(){
   document.getElementById("loginModal").style.display = "flex";
 }
 
-function fecharLogin() {
+function fecharLogin(){
   document.getElementById("loginModal").style.display = "none";
 }
 
-// Fallback para evitar botão "morto" se o módulo falhar.
-window.login = function () {
+window.login = function(){
   alert("Carregando login... se persistir, recarregue a página.");
 };
 
 window.abrirLogin = abrirLogin;
 window.fecharLogin = fecharLogin;
 
-window.addEventListener("click", function(event) {
+window.addEventListener("click", function(event){
   const modal = document.getElementById("loginModal");
-  if (event.target === modal) {
+  if(event.target === modal){
     fecharLogin();
   }
 });
@@ -277,7 +271,6 @@ import {
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Regra de entrada: convite ocupa somente a base.
 const SLOT_ORDER = ["maa", "mab", "mba", "mbb"];
 const BASE_SLOTS = ["maa", "mab", "mba", "mbb"];
 const params = new URL(window.location.href).searchParams;
@@ -285,31 +278,20 @@ const ref = (params.get("ref") || "").trim();
 const bootstrapRef = doc(db, "sistema", "bootstrap");
 let bloqueiaRedirectAuth = false;
 
-function idDocumentoValido(id) {
-  return (
-    typeof id === "string" &&
-    id.trim().length > 0 &&
-    !id.includes("/")
-  );
+function idDocumentoValido(id){
+  return typeof id === "string" && id.trim().length > 0 && !id.includes("/");
 }
 
-function extrairUid(valor) {
-  if (idDocumentoValido(valor)) return valor.trim();
-  if (valor && typeof valor === "object") {
-    if (idDocumentoValido(valor.uid)) return valor.uid.trim();
-    if (idDocumentoValido(valor.userUid)) return valor.userUid.trim();
+function extrairUid(valor){
+  if(idDocumentoValido(valor)) return valor.trim();
+  if(valor && typeof valor === "object"){
+    if(idDocumentoValido(valor.uid)) return valor.uid.trim();
+    if(idDocumentoValido(valor.userUid)) return valor.userUid.trim();
   }
   return null;
 }
 
-function proximoSlotDisponivel(slots) {
-  for (const slot of SLOT_ORDER) {
-    if (!slots[slot]) return slot;
-  }
-  return null;
-}
-
-function normalizarSlots(slots) {
+function normalizarSlots(slots){
   const origem = slots || {};
   return {
     m: origem.m ?? null,
@@ -322,47 +304,40 @@ function normalizarSlots(slots) {
   };
 }
 
-function contarBasePreenchida(slots) {
+function contarBasePreenchida(slots){
   return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
 }
-function compactarBase(slots) {
-  const atualizados = normalizarSlots(slots);
 
+function compactarBase(slots){
+  const atualizados = normalizarSlots(slots);
   const ocupantes = BASE_SLOTS
     .map((slot) => atualizados[slot])
     .filter(Boolean);
-
   BASE_SLOTS.forEach((slot, index) => {
     atualizados[slot] = ocupantes[index] || null;
   });
-
   return atualizados;
 }
-  function extrairMudancasDeSlot(slotsAntigos, slotsNovos) {
+
+function extrairMudancasDeSlot(slotsAntigos, slotsNovos){
   const mudancas = [];
   const todosSlots = ["m", "ma", "mb", "maa", "mab", "mba", "mbb"];
-
-  for (const slot of todosSlots) {
+  for(const slot of todosSlots){
     const uidNovo = extrairUid(slotsNovos[slot]);
-    if (!uidNovo) continue;
-
+    if(!uidNovo) continue;
     const uidAntigoNoMesmoSlot = extrairUid(slotsAntigos[slot]);
-
-    if (uidAntigoNoMesmoSlot !== uidNovo) {
+    if(uidAntigoNoMesmoSlot !== uidNovo){
       mudancas.push({ uid: uidNovo, novoSlot: slot });
     }
   }
-
   return mudancas;
 }
-function posicionarConvidadoNaBase(slots, novoUid) {
-  const atualizados = normalizarSlots(slots);
 
-  // Fila lateral da base: novo entra em maa e empurra os demais para direita.
-  if (atualizados.mbb) {
+function posicionarConvidadoNaBase(slots, novoUid){
+  const atualizados = normalizarSlots(slots);
+  if(atualizados.mbb){
     return { slots: atualizados, slot: null };
   }
-
   atualizados.mbb = atualizados.mba || null;
   atualizados.mba = atualizados.mab || null;
   atualizados.mab = atualizados.maa || null;
@@ -370,139 +345,112 @@ function posicionarConvidadoNaBase(slots, novoUid) {
   return { slots: atualizados, slot: "maa" };
 }
 
-function promoverDonoQualificado(slots, ownerUid) {
+function promoverDonoQualificado(slots, ownerUid){
   const atualizados = normalizarSlots(slots);
   const basePreenchida = contarBasePreenchida(atualizados);
-  if (basePreenchida < 2) {
+  if(basePreenchida < 2){
     return { slots: atualizados, slotPromovido: null };
   }
-
   const slotBaseDono = BASE_SLOTS.find((slot) => atualizados[slot] === ownerUid);
-  if (!slotBaseDono) {
+  if(!slotBaseDono){
     return { slots: atualizados, slotPromovido: null };
   }
-
-  if (!atualizados.ma) {
+  if(!atualizados.ma){
     atualizados.ma = ownerUid;
     atualizados[slotBaseDono] = null;
     const compactados = compactarBase(atualizados);
     return { slots: compactados, slotPromovido: "ma" };
   }
-
-  if (atualizados.ma === ownerUid) {
+  if(atualizados.ma === ownerUid){
     return { slots: atualizados, slotPromovido: "ma" };
   }
-
-  if (!atualizados.mb) {
+  if(!atualizados.mb){
     atualizados.mb = ownerUid;
     atualizados[slotBaseDono] = null;
     const compactados = compactarBase(atualizados);
     return { slots: compactados, slotPromovido: "mb" };
   }
-
-  if (atualizados.mb === ownerUid) {
+  if(atualizados.mb === ownerUid){
     return { slots: atualizados, slotPromovido: "mb" };
   }
-
   return { slots: atualizados, slotPromovido: null };
 }
 
-async function esperarDocumentoUsuario(uid, tentativas = 10, intervaloMs = 250) {
+async function esperarDocumentoUsuario(uid, tentativas = 10, intervaloMs = 250){
   const userRef = doc(db, "usuarios", uid);
-  for (let i = 0; i < tentativas; i++) {
+  for(let i = 0; i < tentativas; i++){
     const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) return true;
+    if(userSnap.exists()) return true;
     await new Promise((resolve) => setTimeout(resolve, intervaloMs));
   }
   return false;
 }
 
-async function criarContaPorConvite(email, senha, refUid) {
-  if (!refUid) {
+async function criarContaPorConvite(email, senha, refUid){
+  if(!refUid){
     alert("Cadastro apenas por convite.");
     return false;
   }
-
   let cred;
-  try {
+  try{
     bloqueiaRedirectAuth = true;
     cred = await createUserWithEmailAndPassword(auth, email, senha);
-  } catch (e) {
+  }catch(e){
     bloqueiaRedirectAuth = false;
-    if (e.code === "auth/email-already-in-use") {
+    if(e.code === "auth/email-already-in-use"){
       alert("Este e-mail já está em uso.");
       return false;
     }
-    if (e.code === "auth/weak-password") {
+    if(e.code === "auth/weak-password"){
       alert("Senha fraca. Use pelo menos 6 caracteres.");
       return false;
     }
     alert("Erro ao criar conta: " + (e.code || e.message || e));
     return false;
   }
-
   const novoUid = cred.user.uid;
   const novoUserRef = doc(db, "usuarios", novoUid);
   const refUserRef = doc(db, "usuarios", refUid);
-
-  try {
+  try{
     await runTransaction(db, async (transaction) => {
       const refSnap = await transaction.get(refUserRef);
-      if (!refSnap.exists()) throw new Error("convite-invalido");
-
+      if(!refSnap.exists()) throw new Error("convite-invalido");
       const refData = refSnap.data();
       const matrizId = refUid;
-
-if (!idDocumentoValido(matrizId)) {
-  throw new Error("ref-sem-matriz");
-}
-
-const matrizRef = doc(db, "matrizes", matrizId);
+      if(!idDocumentoValido(matrizId)){
+        throw new Error("ref-sem-matriz");
+      }
+      const matrizRef = doc(db, "matrizes", matrizId);
       const matrizSnap = await transaction.get(matrizRef);
-      if (!matrizSnap.exists()) throw new Error("matriz-inexistente");
-
+      if(!matrizSnap.exists()) throw new Error("matriz-inexistente");
       const matrizData = matrizSnap.data();
       const { slots: slotsPosicionados, slot } = posicionarConvidadoNaBase(
         normalizarSlots(matrizData.slots),
         novoUid
       );
-      if (!slot) {
-  console.log("Sem vaga na matriz. Seguindo sem posicionar.");
-}
+      if(!slot){
+        console.log("Sem vaga na matriz. Seguindo sem posicionar.");
+      }
       const convidadosAtuais = refData.convidadosCount || 0;
-const novoConvidadosCount = convidadosAtuais + 1;
-
-let slots = slotsPosicionados;
-let slotPromovido = null;
-
-if (novoConvidadosCount >= 2) {
-  const resultado = promoverDonoQualificado(slotsPosicionados, refUid);
-  slots = resultado.slots;
-  slotPromovido = resultado.slotPromovido;
-}
-
-const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
-const matrizesAscendentes = [
-  { ref: matrizRef, data: matrizData }
-];
-
-let parentUid = matrizData.parentMatrixOwnerUid;
-
-while (parentUid) {
-  const parentRef = doc(db, "matrizes", parentUid);
-  const parentSnap = await transaction.get(parentRef);
-
-  if (!parentSnap.exists()) break;
-
-  const parentData = parentSnap.data();
-
-  matrizesAscendentes.push({
-    ref: parentRef,
-    data: parentData
-  });
-
-  parentUid = parentData.parentMatrixOwnerUid;
-}
+      const novoConvidadosCount = convidadosAtuais + 1;
+      let slots = slotsPosicionados;
+      let slotPromovido = null;
+      if(novoConvidadosCount >= 2){
+        const resultado = promoverDonoQualificado(slotsPosicionados, refUid);
+        slots = resultado.slots;
+        slotPromovido = resultado.slotPromovido;
+      }
+      const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
+      const matrizesAscendentes = [{ ref: matrizRef, data: matrizData }];
+      let parentUid = matrizData.parentMatrixOwnerUid;
+      while(parentUid){
+        const parentRef = doc(db, "matrizes", parentUid);
+        const parentSnap = await transaction.get(parentRef);
+        if(!parentSnap.exists()) break;
+        const parentData = parentSnap.data();
+        matrizesAscendentes.push({ ref: parentRef, data: parentData });
+        parentUid = parentData.parentMatrixOwnerUid;
+      }
       transaction.set(novoUserRef, {
         uid: novoUid,
         email,
@@ -513,13 +461,12 @@ while (parentUid) {
         status: "open",
         createdAt: serverTimestamp()
       });
-      
       transaction.update(refUserRef, {
-  status: statusRef,
-  slotAtual: slotPromovido || refData.slotAtual || "maa",
-  convidadosCount: novoConvidadosCount,
-  convidadosDiretos: arrayUnion(novoUid)
-});
+        status: statusRef,
+        slotAtual: slotPromovido || refData.slotAtual || "maa",
+        convidadosCount: novoConvidadosCount,
+        convidadosDiretos: arrayUnion(novoUid)
+      });
       transaction.set(doc(db, "matrizes", novoUid), {
         ownerUid: novoUid,
         parentMatrixOwnerUid: extrairUid(matrizData.ownerUid) || refUid,
@@ -527,121 +474,101 @@ while (parentUid) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-const mudancasSlot = [];
-      for (const item of matrizesAscendentes) {
-  let novosSlots;
-  if (item.ref.path === matrizRef.path) {
-    novosSlots = slots;
-  } else {
-    const resultadoAscendente = posicionarConvidadoNaBase(
-      normalizarSlots(item.data.slots),
-      novoUid
-    );
-
-    novosSlots = resultadoAscendente.slots;
-  }
-const slotsAntigos = normalizarSlots(item.data.slots);
-const mudancasDaVez = extrairMudancasDeSlot(slotsAntigos, novosSlots);
-
-for (const mudanca of mudancasDaVez) {
-  const idx = mudancasSlot.findIndex((x) => x.uid === mudanca.uid);
-
-  if (idx >= 0) {
-    mudancasSlot[idx] = mudanca;
-  } else {
-    mudancasSlot.push(mudanca);
-  }
-}
-  transaction.update(item.ref, {
-    slots: novosSlots,
-    updatedAt: serverTimestamp()
-  });
-}
-for (const { uid, novoSlot } of mudancasSlot) {
-  const usuarioRef = doc(db, "usuarios", uid);
-
-  transaction.update(usuarioRef, {
-    slotAtual: novoSlot,
-    updatedAt: serverTimestamp()
-  });
-}      
+      const mudancasSlot = [];
+      for(const item of matrizesAscendentes){
+        let novosSlots;
+        if(item.ref.path === matrizRef.path){
+          novosSlots = slots;
+        }else{
+          const resultadoAscendente = posicionarConvidadoNaBase(
+            normalizarSlots(item.data.slots),
+            novoUid
+          );
+          novosSlots = resultadoAscendente.slots;
+        }
+        const slotsAntigos = normalizarSlots(item.data.slots);
+        const mudancasDaVez = extrairMudancasDeSlot(slotsAntigos, novosSlots);
+        for(const mudanca of mudancasDaVez){
+          const idx = mudancasSlot.findIndex((x) => x.uid === mudanca.uid);
+          if(idx >= 0){
+            mudancasSlot[idx] = mudanca;
+          }else{
+            mudancasSlot.push(mudanca);
+          }
+        }
+        transaction.update(item.ref, {
+          slots: novosSlots,
+          updatedAt: serverTimestamp()
+        });
+      }
+      for(const { uid, novoSlot } of mudancasSlot){
+        const usuarioRef = doc(db, "usuarios", uid);
+        transaction.update(usuarioRef, {
+          slotAtual: novoSlot,
+          updatedAt: serverTimestamp()
+        });
+      }
     });
-
     bloqueiaRedirectAuth = false;
     return true;
-  } catch (e) {
+  }catch(e){
     const erroFirestore = e?.code || e?.message || String(e);
-    if (auth.currentUser && auth.currentUser.uid === novoUid) {
-      try {
+    if(auth.currentUser && auth.currentUser.uid === novoUid){
+      try{
         await deleteUser(auth.currentUser);
-      } catch (_) {
-        // Se nao conseguir excluir no Auth, ao menos evita ficar logado.
-      }
+      }catch(_){}
     }
-
     alert(
-      e.message === "matriz-cheia"
-        ? "Matriz do convite está cheia."
-        : e.message === "convite-invalido"
-          ? "Convite inválido."
-          : e.message === "ref-sem-matriz" || e.message === "matriz-inexistente"
-            ? "Convite com dados incompletos."
-            : "Erro ao posicionar na matriz (" + erroFirestore + ")."
+      e.message === "matriz-cheia" ? "Matriz do convite está cheia." :
+      e.message === "convite-invalido" ? "Convite inválido." :
+      e.message === "ref-sem-matriz" || e.message === "matriz-inexistente" ? "Convite com dados incompletos." :
+      "Erro ao posicionar na matriz (" + erroFirestore + ")."
     );
-
-    // Evita sessão autenticada sem documentos no Firestore.
-    try {
+    try{
       await signOut(auth);
-    } catch (_) {
-      // Sem impacto funcional; usuário já recebeu mensagem de erro.
-    }
-
+    }catch(_){}
     bloqueiaRedirectAuth = false;
     return false;
   }
 }
 
-async function criarPrimeiroUsuario(email, senha) {
-  try {
+async function criarPrimeiroUsuario(email, senha){
+  try{
     const usuariosCount = await getCountFromServer(collection(db, "usuarios"));
-    if (usuariosCount.data().count > 0) {
+    if(usuariosCount.data().count > 0){
       alert("Cadastro apenas por convite.");
       return false;
     }
-  } catch (_) {
+  }catch(_){
     alert("Cadastro apenas por convite.");
     return false;
   }
-
   let cred;
-  try {
+  try{
     bloqueiaRedirectAuth = true;
     cred = await createUserWithEmailAndPassword(auth, email, senha);
-  } catch (e) {
+  }catch(e){
     bloqueiaRedirectAuth = false;
-    if (e.code === "auth/email-already-in-use") {
+    if(e.code === "auth/email-already-in-use"){
       alert("Este e-mail já está em uso.");
       return false;
     }
-    if (e.code === "auth/weak-password") {
+    if(e.code === "auth/weak-password"){
       alert("Senha fraca. Use pelo menos 6 caracteres.");
       return false;
     }
     alert("Erro ao criar conta: " + (e.code || e.message || e));
     return false;
   }
-
   const novoUid = cred.user.uid;
   const novoUserRef = doc(db, "usuarios", novoUid);
   const novaMatrizRef = doc(db, "matrizes", novoUid);
-
-  try {
+  try{
     await runTransaction(db, async (transaction) => {
       const bootstrapSnap = await transaction.get(bootstrapRef);
-      if (bootstrapSnap.exists() && bootstrapSnap.data().inicializado) {
+      if(bootstrapSnap.exists() && bootstrapSnap.data().inicializado){
         throw new Error("bootstrap-ja-realizado");
       }
-
       transaction.set(novoUserRef, {
         uid: novoUid,
         email,
@@ -653,7 +580,6 @@ async function criarPrimeiroUsuario(email, senha) {
         role: "owner",
         createdAt: serverTimestamp()
       });
-
       transaction.set(novaMatrizRef, {
         ownerUid: novoUid,
         parentMatrixOwnerUid: null,
@@ -661,84 +587,67 @@ async function criarPrimeiroUsuario(email, senha) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-
       transaction.set(bootstrapRef, {
         inicializado: true,
         rootUid: novoUid,
         createdAt: serverTimestamp()
       });
     });
-
     bloqueiaRedirectAuth = false;
     return true;
-  } catch (e) {
-    if (auth.currentUser && auth.currentUser.uid === novoUid) {
-      try {
+  }catch(e){
+    if(auth.currentUser && auth.currentUser.uid === novoUid){
+      try{
         await deleteUser(auth.currentUser);
-      } catch (_) {
-        
-      }
+      }catch(_){}
     }
-
     alert(
-      e.message === "bootstrap-ja-realizado"
-        ? "Cadastro inicial já foi realizado. Use um convite."
-        : "Erro ao criar usuário inicial."
+      e.message === "bootstrap-ja-realizado" ? "Cadastro inicial já foi realizado. Use um convite." :
+      "Erro ao criar usuário inicial."
     );
     bloqueiaRedirectAuth = false;
     return false;
   }
 }
 
-async function loginReal() {
+async function loginReal(){
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
-
-  if (!email || !senha) {
+  if(!email || !senha){
     alert("Preencha e-mail e senha.");
     return;
   }
-
-  try {
+  try{
     await signInWithEmailAndPassword(auth, email, senha);
     const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "", 6, 200);
-    if (!existeDocUsuario) {
+    if(!existeDocUsuario){
       await signOut(auth);
       alert("Conta sem registro no Firestore. Tente cadastrar novamente pelo convite.");
       return;
     }
     window.fecharLogin();
     window.location.href = "dashboard.html";
-  } catch (error) {
+  }catch(error){
     const usuarioNaoEncontrado = error.code === "auth/user-not-found";
     const senhaInvalida = error.code === "auth/wrong-password";
     const temConvite = Boolean(ref);
-    const credencialInvalida =
-      error.code === "auth/invalid-credential" ||
-      error.code === "auth/invalid-login-credentials";
-
-    if (senhaInvalida) {
+    const credencialInvalida = error.code === "auth/invalid-credential" || error.code === "auth/invalid-login-credentials";
+    if(senhaInvalida){
       alert("Senha incorreta.");
       return;
     }
-
-    // Com convite, qualquer falha de login (exceto senha errada) tenta cadastro.
-    if (!temConvite && credencialInvalida && !usuarioNaoEncontrado) {
+    if(!temConvite && credencialInvalida && !usuarioNaoEncontrado){
       alert("Credenciais inválidas. Verifique e-mail e senha.");
       return;
     }
-
-    if (!temConvite && !usuarioNaoEncontrado) {
+    if(!temConvite && !usuarioNaoEncontrado){
       alert("Erro no login: " + (error.code || error.message || error));
       return;
     }
-
-    const criado = temConvite
-      ? await criarContaPorConvite(email, senha, ref)
-      : await criarPrimeiroUsuario(email, senha);
-    if (criado) {
+    const criado = temConvite ? await criarContaPorConvite(email, senha, ref) : await criarPrimeiroUsuario(email, senha);
+    if(criado){
       const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "");
-      if (!existeDocUsuario) {
+      if(!existeDocUsuario){
         await signOut(auth);
         alert("Cadastro incompleto no Firestore. Refaça o cadastro pelo convite.");
         return;
@@ -752,17 +661,18 @@ async function loginReal() {
 window.login = loginReal;
 
 onAuthStateChanged(auth, async (user) => {
-  if (bloqueiaRedirectAuth) return;
-  if (!user) return;
+  if(bloqueiaRedirectAuth) return;
+  if(!user) return;
   const existeDocUsuario = await esperarDocumentoUsuario(user.uid, 4, 150);
-  if (!existeDocUsuario) {
-    try {
+  if(!existeDocUsuario){
+    try{
       await signOut(auth);
-    } catch (_) {}
+    }catch(_){}
     return;
   }
   window.location.href = "dashboard.html";
 });
 </script>
+
 </body>
 </html>
