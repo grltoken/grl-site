@@ -3,446 +3,676 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
-
+<title>Matriz</title>
 <style>
 body{
+  background:#ffffff;
   margin:0;
-  font-family: Consolas, monospace;
-  background:#fff;
   display:flex;
   flex-direction:column;
   align-items:center;
-}
-
-#topbar{
-  width:100%;
-  box-sizing:border-box;
-  padding:15px 12px 0;
-  display:flex;
   justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
+  min-height:100vh;
+  padding:20px;
+  font-family: Consolas, monospace;
 }
 
-#topbar button{
-  background:none;
-  border:1px solid #003366;
-  color:#003366;
-  padding:6px 12px;
-  font-size:12px;
-  cursor:pointer;
-  transition:0.2s;
+#loginBtn{
+  position:fixed;
+  top:10px;
+  left:10px;
 }
 
-#topbar button:hover{
+#loginBtn button{
+  padding:7px 12px;
   background:#003366;
   color:#fff;
+  border:none;
+  border-radius:10px;
+  font-family: Consolas, monospace;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,51,102,0.18);
+  transition:opacity .2s ease, transform .06s ease;
 }
 
-#matriz{
-  margin-top:25px;
+#loginBtn button:hover{
+  opacity:.92;
+}
+
+#loginBtn button:active{
+  transform:translateY(1px);
+}
+
+h1{
+  color:#003366;
+  font-family: Consolas, monospace;
+  font-size:28px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:40px;
 }
 
 svg{
-  width:260px;
-  max-width:90vw;
-}
-
-line{
-  stroke:gold;
-  stroke-width:1.5;
-  opacity:0.85;
+  width:90%;
+  max-width:420px;
 }
 
 circle{
   fill:#003366;
-  opacity:0.15;
-  transition:0.3s;
+  opacity:0;
+  transform:scale(0.6);
+  transform-origin:center;
+  transform-box:fill-box;
+  transition: opacity .2s ease, transform .2s ease;
 }
 
 circle.on{
-  opacity:0.8;
-}
-
-circle.eu{
-  fill:gold;
   opacity:1;
-  filter: drop-shadow(0 0 4px rgba(255,215,0,0.6));
-}
-circle.qualified{
-  stroke:gold;
-  stroke-width:2;
-  opacity:1;
-}
-#info{
-  width:90%;
-  max-width:700px;
-  margin-top:25px;
-  text-align:center;
-  color:#003366;
-  font-size:13px;
-  line-height:1.6;
-  word-break:break-word;
+  transform:scale(1);
 }
 
-#info p{
-  margin:8px 0;
-}
-
-#convites{
-  width:90%;
-  max-width:700px;
-  margin-top:10px;
-  text-align:center;
-}
-
-#convites p{
-  color:#003366;
-  font-size:12px;
-  margin:12px 0 6px;
-}
-
-#convites input{
-  width:100%;
+#loginModal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(8,18,40,0.32);
+  backdrop-filter: blur(2px);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
   box-sizing:border-box;
-  border:1px solid #003366;
-  padding:10px;
-  font-family:Consolas, monospace;
-  font-size:12px;
+}
+
+.modal-box{
+  width:100%;
+  max-width:340px;
+  background:#ffffff;
+  border:1px solid rgba(0,51,102,0.18);
+  border-radius:16px;
+  padding:18px;
+  box-sizing:border-box;
+  box-shadow:0 14px 40px rgba(0,35,70,0.14);
+}
+
+.modal-box h2{
+  margin:0 0 12px;
+  color:#002f5e;
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.2px;
+}
+
+.modal-box input{
+  width:100%;
+  border:1px solid rgba(0,51,102,0.25);
+  border-radius:10px;
+  padding:10px 12px;
+  margin-bottom:10px;
+  font-family: Consolas, monospace;
+  font-size:13px;
   color:#003366;
-  background:#fff;
+  box-sizing:border-box;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
 }
 
-.convite-actions{
-  margin-top:6px;
-  margin-bottom:12px;
+.modal-box input:focus{
+  border-color:#2a6fb3;
+  box-shadow:0 0 0 3px rgba(42,111,179,.12);
 }
 
-.convite-actions button{
-  background:none;
+.modal-row{
+  display:flex;
+  gap:8px;
+  margin-top:4px;
+}
+
+.modal-row button{
+  flex:1;
+  padding:9px 10px;
+  border-radius:10px;
   border:1px solid #003366;
-  color:#003366;
-  padding:6px 10px;
-  font-size:11px;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.convite-actions button:hover{
   background:#003366;
   color:#fff;
+  font-family: Consolas, monospace;
+  font-size:12px;
+  cursor:pointer;
+  transition:transform .06s ease, opacity .2s ease;
 }
 
-#curso{
-  max-width:700px;
-  width:90%;
-  overflow:hidden;
-  max-height:0;
-  opacity:0;
-  transition:0.5s;
-}
-
-#curso.ativo{
-  max-height:1000px;
-  opacity:1;
-  margin-top:25px;
-  margin-bottom:30px;
-}
-
-#cursoConteudo{
-  border:1px solid #003366;
-  padding:16px;
+.modal-row button:last-child{
+  background:#fff;
   color:#003366;
-  font-size:13px;
-  line-height:1.6;
 }
 
-#seguranca{
-  width:90%;
-  max-width:700px;
-  margin-top:18px;
-  text-align:center;
-  color:#666;
-  font-size:11px;
-  margin-bottom:20px;
+.modal-row button:hover{
+  opacity:.9;
+}
+
+.modal-row button:active{
+  transform:translateY(1px);
 }
 </style>
 </head>
-
 <body>
-
-<div id="topbar">
-  <button onclick="toggleCurso()">Masterminds</button>
-  <button onclick="logout()">Sair</button>
+<div id="loginBtn">
+  <button id="loginButton" onclick="abrirLogin()">Login</button>
 </div>
 
-<div id="matriz">
-  <svg viewBox="0 0 480 460">
-    <line x1="240" y1="60" x2="120" y2="200"/>
-    <line x1="240" y1="60" x2="360" y2="200"/>
+<h1 id="title"></h1>
 
-    <line x1="120" y1="200" x2="60" y2="360"/>
-    <line x1="120" y1="200" x2="180" y2="360"/>
+<svg viewBox="0 0 480 460">
+  <circle id="maa" cx="60" cy="360" r="6"/>
+  <circle id="mab" cx="180" cy="360" r="6"/>
+  <circle id="mba" cx="300" cy="360" r="6"/>
+  <circle id="mbb" cx="420" cy="360" r="6"/>
+  <circle id="ma" cx="120" cy="200" r="7"/>
+  <circle id="mb" cx="360" cy="200" r="7"/>
+  <circle id="m" cx="240" cy="60" r="8"/>
+</svg>
 
-    <line x1="360" y1="200" x2="300" y2="360"/>
-    <line x1="360" y1="200" x2="420" y2="360"/>
-
-    <circle id="maa" cx="60" cy="360" r="5"/>
-    <circle id="mab" cx="180" cy="360" r="5"/>
-    <circle id="mba" cx="300" cy="360" r="5"/>
-    <circle id="mbb" cx="420" cy="360" r="5"/>
-
-    <circle id="ma" cx="120" cy="200" r="6.5"/>
-    <circle id="mb" cx="360" cy="200" r="6.5"/>
-    <circle id="m" cx="240" cy="60" r="8"/>
-  </svg>
-</div>
-
-<div id="info"></div>
-
-<div id="convites">
-  <p>Seu convite</p>
-  <input id="convite" readonly>
-  <div class="convite-actions">
-    <button onclick="copiarConvite('convite', this)">Copiar convite</button>
+<div id="loginModal">
+  <div class="modal-box">
+    <h2>Entrar na Matriz</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="senha" type="password" placeholder="Senha">
+    <div class="modal-row">
+      <button onclick="login()">Entrar</button>
+      <button onclick="fecharLogin()">Fechar</button>
+    </div>
   </div>
 </div>
 
-<div id="seguranca">
-  A sessão será encerrada automaticamente após 10 minutos de inatividade.
-</div>
+<script>
+const title = document.getElementById("title");
+const text = "MASTERMINDs";
 
-<div id="curso">
-  <div id="cursoConteudo">
-    Curso aqui
-  </div>
-</div>
+function show(id){
+  document.getElementById(id)?.classList.add("on");
+}
+
+function hide(id){
+  document.getElementById(id)?.classList.remove("on");
+}
+
+function reset(){
+  ["maa", "mab", "mba", "mbb", "ma", "mb", "m"].forEach(hide);
+}
+
+function typeText(){
+  title.innerHTML = "";
+  let i = 0;
+  const interval = setInterval(()=>{
+    title.innerHTML = text.substring(0, i + 1) + "|";
+    i++;
+    if(i >= text.length) clearInterval(interval);
+  }, 80);
+}
+
+function run(){
+  reset();
+  title.innerHTML = "";
+  setTimeout(()=>{show("maa");}, 400);
+  setTimeout(()=>{hide("maa");}, 1100);
+  setTimeout(()=>{show("ma");}, 1300);
+  setTimeout(()=>{show("maa"); show("mab");}, 2000);
+  setTimeout(()=>{hide("ma"); hide("maa"); hide("mab");}, 2600);
+  setTimeout(()=>{show("m");}, 2800);
+  setTimeout(()=>{show("ma"); show("mb");}, 3600);
+  setTimeout(()=>{show("maa"); show("mab"); show("mba"); show("mbb");}, 4500);
+  setTimeout(()=>{reset();}, 5800);
+  setTimeout(()=>{typeText();}, 6500);
+}
+
+run();
+setInterval(run, 9000);
+</script>
+
+<script>
+function abrirLogin(){
+  document.getElementById("loginModal").style.display = "flex";
+}
+
+function fecharLogin(){
+  document.getElementById("loginModal").style.display = "none";
+}
+
+window.login = function(){
+  alert("Carregando login... se persistir, recarregue a página.");
+};
+
+window.abrirLogin = abrirLogin;
+window.fecharLogin = fecharLogin;
+
+window.addEventListener("click", function(event){
+  const modal = document.getElementById("loginModal");
+  if(event.target === modal){
+    fecharLogin();
+  }
+});
+</script>
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  onAuthStateChanged,
+  signOut,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  collection,
+  doc,
+  getCountFromServer,
+  getDoc,
+  runTransaction,
+  serverTimestamp,
+  arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function limparMatriz(){
-  document.querySelectorAll("circle").forEach(c => {
-    c.classList.remove("on", "eu");
+const SLOT_ORDER = ["maa", "mab", "mba", "mbb"];
+const BASE_SLOTS = ["maa", "mab", "mba", "mbb"];
+const params = new URL(window.location.href).searchParams;
+const ref = (params.get("ref") || "").trim();
+const bootstrapRef = doc(db, "sistema", "bootstrap");
+let bloqueiaRedirectAuth = false;
+
+function idDocumentoValido(id){
+  return typeof id === "string" && id.trim().length > 0 && !id.includes("/");
+}
+
+function extrairUid(valor){
+  if(idDocumentoValido(valor)) return valor.trim();
+  if(valor && typeof valor === "object"){
+    if(idDocumentoValido(valor.uid)) return valor.uid.trim();
+    if(idDocumentoValido(valor.userUid)) return valor.userUid.trim();
+  }
+  return null;
+}
+
+function normalizarSlots(slots){
+  const origem = slots || {};
+  return {
+    m: origem.m ?? null,
+    ma: origem.ma ?? null,
+    mb: origem.mb ?? null,
+    maa: origem.maa ?? null,
+    mab: origem.mab ?? null,
+    mba: origem.mba ?? null,
+    mbb: origem.mbb ?? null
+  };
+}
+
+function contarBasePreenchida(slots){
+  return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
+}
+
+function compactarBase(slots){
+  const atualizados = normalizarSlots(slots);
+  const ocupantes = BASE_SLOTS
+    .map((slot) => atualizados[slot])
+    .filter(Boolean);
+  BASE_SLOTS.forEach((slot, index) => {
+    atualizados[slot] = ocupantes[index] || null;
   });
+  return atualizados;
 }
 
-function marcar(slot, uid, meuUid){
-  const slotId = String(slot || "").trim().toLowerCase();
-  const el = document.getElementById(slotId);
-  if(!el){
-    console.warn("slot-html-nao-encontrado:", slotId);
-    return;
+function extrairMudancasDeSlot(slotsAntigos, slotsNovos){
+  const mudancas = [];
+  const todosSlots = ["m", "ma", "mb", "maa", "mab", "mba", "mbb"];
+  for(const slot of todosSlots){
+    const uidNovo = extrairUid(slotsNovos[slot]);
+    if(!uidNovo) continue;
+    const uidAntigoNoMesmoSlot = extrairUid(slotsAntigos[slot]);
+    if(uidAntigoNoMesmoSlot !== uidNovo){
+      mudancas.push({ uid: uidNovo, novoSlot: slot });
+    }
   }
-
-  el.classList.add("on");
-
-  if(uid === meuUid){
-    el.classList.add("eu");
-  }
+  return mudancas;
 }
 
-function marcarMinhaPosicao(slot){
-  const slotId = String(slot || "").trim().toLowerCase();
-  const el = document.getElementById(slotId);
-  if(!el){
-    return;
+function posicionarConvidadoNaBase(slots, novoUid){
+  const atualizados = normalizarSlots(slots);
+  if(atualizados.mbb){
+    return { slots: atualizados, slot: null };
   }
-  el.classList.add("on", "eu");
+  atualizados.mbb = atualizados.mba || null;
+  atualizados.mba = atualizados.mab || null;
+  atualizados.mab = atualizados.maa || null;
+  atualizados.maa = novoUid;
+  return { slots: atualizados, slot: "maa" };
 }
-function marcarQualificado(slot){
-  const slotId = String(slot || "").trim().toLowerCase();
-  const el = document.getElementById(slotId);
 
-  if(!el){
-    return;
+function promoverDonoQualificado(slots, ownerUid){
+  const atualizados = normalizarSlots(slots);
+  const basePreenchida = contarBasePreenchida(atualizados);
+  if(basePreenchida < 2){
+    return { slots: atualizados, slotPromovido: null };
   }
-
-  el.classList.add("qualified");
+  const slotBaseDono = BASE_SLOTS.find((slot) => atualizados[slot] === ownerUid);
+  if(!slotBaseDono){
+    return { slots: atualizados, slotPromovido: null };
+  }
+  if(!atualizados.ma){
+    atualizados.ma = ownerUid;
+    atualizados[slotBaseDono] = null;
+    const compactados = compactarBase(atualizados);
+    return { slots: compactados, slotPromovido: "ma" };
+  }
+  if(atualizados.ma === ownerUid){
+    return { slots: atualizados, slotPromovido: "ma" };
+  }
+  if(!atualizados.mb){
+    atualizados.mb = ownerUid;
+    atualizados[slotBaseDono] = null;
+    const compactados = compactarBase(atualizados);
+    return { slots: compactados, slotPromovido: "mb" };
+  }
+  if(atualizados.mb === ownerUid){
+    return { slots: atualizados, slotPromovido: "mb" };
+  }
+  return { slots: atualizados, slotPromovido: null };
 }
-function slotPertenceAoUsuario(slotValue, uid){
-  if(!slotValue || !uid) return false;
-  if(String(slotValue) === String(uid)) return true;
-  if(typeof slotValue === "object"){
-    if(slotValue.uid && String(slotValue.uid) === String(uid)) return true;
-    if(slotValue.userUid && String(slotValue.userUid) === String(uid)) return true;
+
+async function esperarDocumentoUsuario(uid, tentativas = 10, intervaloMs = 250){
+  const userRef = doc(db, "usuarios", uid);
+  for(let i = 0; i < tentativas; i++){
+    const userSnap = await getDoc(userRef);
+    if(userSnap.exists()) return true;
+    await new Promise((resolve) => setTimeout(resolve, intervaloMs));
   }
   return false;
 }
 
-function toggleCurso(){
-  const curso = document.getElementById("curso");
-  if(curso) curso.classList.toggle("ativo");
-}
-
-async function copiarConvite(inputId, botao){
-  const input = document.getElementById(inputId);
-  if(!input || !input.value){
-    return;
+async function criarContaPorConvite(email, senha, refUid){
+  if(!refUid){
+    alert("Cadastro apenas por convite.");
+    return false;
   }
-
-  const textoOriginal = botao ? botao.textContent : "";
-
+  let cred;
   try{
-    if(navigator.clipboard && window.isSecureContext){
-      await navigator.clipboard.writeText(input.value);
-    }else{
-      input.select();
-      input.setSelectionRange(0, input.value.length);
-      document.execCommand("copy");
-      window.getSelection().removeAllRanges();
+    bloqueiaRedirectAuth = true;
+    cred = await createUserWithEmailAndPassword(auth, email, senha);
+  }catch(e){
+    bloqueiaRedirectAuth = false;
+    if(e.code === "auth/email-already-in-use"){
+      alert("Este e-mail já está em uso.");
+      return false;
     }
-
-    if(botao){
-      botao.textContent = "Copiado!";
-      setTimeout(()=>{
-        botao.textContent = textoOriginal;
-      }, 1200);
+    if(e.code === "auth/weak-password"){
+      alert("Senha fraca. Use pelo menos 6 caracteres.");
+      return false;
     }
-  }catch(error){
-    console.error("Erro ao copiar convite:", error);
+    alert("Erro ao criar conta: " + (e.code || e.message || e));
+    return false;
   }
-}
-
-async function logout(){
+  const novoUid = cred.user.uid;
+  const novoUserRef = doc(db, "usuarios", novoUid);
+  const refUserRef = doc(db, "usuarios", refUid);
   try{
-    await signOut(auth);
-    window.location.href = "index.html";
-  }catch(error){
-    console.error("Erro ao sair:", error);
-  }
-}
-
-window.toggleCurso = toggleCurso;
-window.logout = logout;
-window.copiarConvite = copiarConvite;
-
-let timeoutInatividade;
-
-function resetTimer(){
-  clearTimeout(timeoutInatividade);
-
-  timeoutInatividade = setTimeout(async ()=>{
-    try{
-      await signOut(auth);
-      window.location.href = "index.html";
-    }catch(error){
-      console.error("Erro ao encerrar sessão:", error);
-    }
-  }, 10 * 60 * 1000);
-}
-
-["click","mousemove","keydown","touchstart","scroll"].forEach(evento => {
-  document.addEventListener(evento, resetTimer, { passive:true });
-});
-
-resetTimer();
-
-onAuthStateChanged(auth, async (user)=>{
-  const info = document.getElementById("info");
-  const inputConvite = document.getElementById("convite");
-
-  try{
-    if(info) info.innerHTML = "<p>Carregando...</p>";
-
-    if(!user){
-      window.location.href = "index.html";
-      return;
-    }
-
-    limparMatriz();
-
-    if(!inputConvite) throw new Error("html-convite");
-    if(!info) throw new Error("html-info");
-
-    const baseUrl = window.location.origin + "/index.html";
-    const linkConvite = baseUrl + "?ref=" + user.uid;
-
-    inputConvite.value = linkConvite;
-
-    const userRef = doc(db, "usuarios", user.uid);
-    const userSnap = await getDoc(userRef);
-    if(!userSnap.exists()) throw new Error("firestore-user");
-
-    const data = userSnap.data();
-    const matrizId = data.matrizId;
-    if(!matrizId) throw new Error("user-sem-matrizId");
-
-    const matrizRef = doc(db, "matrizes", matrizId);
-    const matrizSnap = await getDoc(matrizRef);
-    if(!matrizSnap.exists()) throw new Error("firestore-matriz:" + matrizId);
-
-    const matrizData = matrizSnap.data();
-    const slots = matrizData.slots || {};
-
-    let minhaPosicaoDetectada = "";
-
-    Object.entries(slots).forEach(([slotKey, slotUid])=>{
-      if(slotUid){
-        marcar(slotKey, slotUid, user.uid);
-        if(slotPertenceAoUsuario(slotUid, user.uid)){
-          minhaPosicaoDetectada = slotKey;
+    await runTransaction(db, async (transaction) => {
+      const refSnap = await transaction.get(refUserRef);
+      if(!refSnap.exists()) throw new Error("convite-invalido");
+      const refData = refSnap.data();
+      const matrizId = refUid;
+      if(!idDocumentoValido(matrizId)){
+        throw new Error("ref-sem-matriz");
+      }
+      const matrizRef = doc(db, "matrizes", matrizId);
+      const matrizSnap = await transaction.get(matrizRef);
+      if(!matrizSnap.exists()) throw new Error("matriz-inexistente");
+      const matrizData = matrizSnap.data();
+      const { slots: slotsPosicionados, slot } = posicionarConvidadoNaBase(
+        normalizarSlots(matrizData.slots),
+        novoUid
+      );
+      if(!slot){
+        console.log("Sem vaga na matriz. Seguindo sem posicionar.");
+      }
+      const convidadosAtuais = refData.convidadosCount || 0;
+      const novoConvidadosCount = convidadosAtuais + 1;
+      let slots = slotsPosicionados;
+      let slotPromovido = null;
+      if(novoConvidadosCount >= 2){
+        const resultado = promoverDonoQualificado(slotsPosicionados, refUid);
+        slots = resultado.slots;
+        slotPromovido = resultado.slotPromovido;
+      }
+      const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
+      const matrizesAscendentes = [{ ref: matrizRef, data: matrizData }];
+      let parentUid = matrizData.parentMatrixOwnerUid;
+      while(parentUid){
+        const parentRef = doc(db, "matrizes", parentUid);
+        const parentSnap = await transaction.get(parentRef);
+        if(!parentSnap.exists()) break;
+        const parentData = parentSnap.data();
+        matrizesAscendentes.push({ ref: parentRef, data: parentData });
+        parentUid = parentData.parentMatrixOwnerUid;
+      }
+      transaction.set(novoUserRef, {
+        uid: novoUid,
+        email,
+        nome: "",
+        parent: refUid,
+        matrizId: novoUid,
+        slotAtual: "maa",
+        status: "open",
+        createdAt: serverTimestamp()
+      });
+      transaction.update(refUserRef, {
+        status: statusRef,
+        slotAtual: slotPromovido || refData.slotAtual || "maa",
+        convidadosCount: novoConvidadosCount,
+        convidadosDiretos: arrayUnion(novoUid)
+      });
+      transaction.set(doc(db, "matrizes", novoUid), {
+        ownerUid: novoUid,
+        parentMatrixOwnerUid: extrairUid(matrizData.ownerUid) || refUid,
+        slots: { m: null, ma: null, mb: null, maa: novoUid, mab: null, mba: null, mbb: null },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      const mudancasSlot = [];
+      for(const item of matrizesAscendentes){
+        let novosSlots;
+        if(item.ref.path === matrizRef.path){
+          novosSlots = slots;
+        }else{
+          const resultadoAscendente = posicionarConvidadoNaBase(
+            normalizarSlots(item.data.slots),
+            novoUid
+          );
+          novosSlots = resultadoAscendente.slots;
         }
+        const slotsAntigos = normalizarSlots(item.data.slots);
+        const mudancasDaVez = extrairMudancasDeSlot(slotsAntigos, novosSlots);
+        for(const mudanca of mudancasDaVez){
+          const idx = mudancasSlot.findIndex((x) => x.uid === mudanca.uid);
+          if(idx >= 0){
+            mudancasSlot[idx] = mudanca;
+          }else{
+            mudancasSlot.push(mudanca);
+          }
+        }
+        transaction.update(item.ref, {
+          slots: novosSlots,
+          updatedAt: serverTimestamp()
+        });
+      }
+      for(const { uid, novoSlot } of mudancasSlot){
+        const usuarioRef = doc(db, "usuarios", uid);
+        transaction.update(usuarioRef, {
+          slotAtual: novoSlot,
+          updatedAt: serverTimestamp()
+        });
       }
     });
-
-   const posicaoNosSlots = Object.keys(slots).find(
-  (slotKey) => String(slots[slotKey]) === String(user.uid)
-);
-
-if(posicaoNosSlots && posicaoNosSlots !== "maa"){
-  minhaPosicaoDetectada = posicaoNosSlots;
-  marcarMinhaPosicao(posicaoNosSlots);
+    bloqueiaRedirectAuth = false;
+    return true;
+  }catch(e){
+    const erroFirestore = e?.code || e?.message || String(e);
+    if(auth.currentUser && auth.currentUser.uid === novoUid){
+      try{
+        await deleteUser(auth.currentUser);
+      }catch(_){}
+    }
+    alert(
+      e.message === "matriz-cheia" ? "Matriz do convite está cheia." :
+      e.message === "convite-invalido" ? "Convite inválido." :
+      e.message === "ref-sem-matriz" || e.message === "matriz-inexistente" ? "Convite com dados incompletos." :
+      "Erro ao posicionar na matriz (" + erroFirestore + ")."
+    );
+    try{
+      await signOut(auth);
+    }catch(_){}
+    bloqueiaRedirectAuth = false;
+    return false;
+  }
 }
-   if(!minhaPosicaoDetectada && data.slotAtual && data.slotAtual !== "maa"){
-  minhaPosicaoDetectada = data.slotAtual;
-  marcarMinhaPosicao(data.slotAtual);
+
+async function criarPrimeiroUsuario(email, senha){
+  try{
+    const usuariosCount = await getCountFromServer(collection(db, "usuarios"));
+    if(usuariosCount.data().count > 0){
+      alert("Cadastro apenas por convite.");
+      return false;
+    }
+  }catch(_){
+    alert("Cadastro apenas por convite.");
+    return false;
+  }
+  let cred;
+  try{
+    bloqueiaRedirectAuth = true;
+    cred = await createUserWithEmailAndPassword(auth, email, senha);
+  }catch(e){
+    bloqueiaRedirectAuth = false;
+    if(e.code === "auth/email-already-in-use"){
+      alert("Este e-mail já está em uso.");
+      return false;
+    }
+    if(e.code === "auth/weak-password"){
+      alert("Senha fraca. Use pelo menos 6 caracteres.");
+      return false;
+    }
+    alert("Erro ao criar conta: " + (e.code || e.message || e));
+    return false;
+  }
+  const novoUid = cred.user.uid;
+  const novoUserRef = doc(db, "usuarios", novoUid);
+  const novaMatrizRef = doc(db, "matrizes", novoUid);
+  try{
+    await runTransaction(db, async (transaction) => {
+      const bootstrapSnap = await transaction.get(bootstrapRef);
+      if(bootstrapSnap.exists() && bootstrapSnap.data().inicializado){
+        throw new Error("bootstrap-ja-realizado");
+      }
+      transaction.set(novoUserRef, {
+        uid: novoUid,
+        email,
+        nome: "",
+        parent: null,
+        matrizId: novoUid,
+        slotAtual: "m",
+        status: "open",
+        role: "owner",
+        createdAt: serverTimestamp()
+      });
+      transaction.set(novaMatrizRef, {
+        ownerUid: novoUid,
+        parentMatrixOwnerUid: null,
+        slots: { m: novoUid, ma: null, mb: null, maa: null, mab: null, mba: null, mbb: null },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      transaction.set(bootstrapRef, {
+        inicializado: true,
+        rootUid: novoUid,
+        createdAt: serverTimestamp()
+      });
+    });
+    bloqueiaRedirectAuth = false;
+    return true;
+  }catch(e){
+    if(auth.currentUser && auth.currentUser.uid === novoUid){
+      try{
+        await deleteUser(auth.currentUser);
+      }catch(_){}
+    }
+    alert(
+      e.message === "bootstrap-ja-realizado" ? "Cadastro inicial já foi realizado. Use um convite." :
+      "Erro ao criar usuário inicial."
+    );
+    bloqueiaRedirectAuth = false;
+    return false;
+  }
 }
 
-const posicaoOficial = data.slotAtual || null;
-
-if(posicaoOficial && posicaoOficial !== "maa"){
-  minhaPosicaoDetectada = posicaoOficial;
-  marcarMinhaPosicao(posicaoOficial);
-}
-
-if(posicaoNosSlots && posicaoOficial && posicaoNosSlots !== posicaoOficial){
-  console.warn("INCONSISTÊNCIA DE POSIÇÃO:", {
-    uid: user.uid,
-    posicaoOficial,
-    posicaoNosSlots
-  });
-}
-    const convidadosDiretos = Array.isArray(data.convidadosDiretos)
-  ? data.convidadosDiretos.length
-  : Number(data.convidadosCount || 0);
-
-const topoStatus = slots.m ? "ocupado" : "vazio";
-
-    info.innerHTML = `
-      <p><b>${data.nome || "Usuário"}</b></p>
-      <p>${data.email || ""}</p>
-      <p>Status: ${data.status || "open"}</p>
-      <p>Pai: ${data.parent || "sem pai"}</p>
-      <p>Matriz: ${matrizId}</p>
-      <p>Minha posição detectada: ${minhaPosicaoDetectada || "não encontrada"}</p>
-      <p>Topo (m): ${topoStatus}</p>
-      <p>Convidados diretos: ${convidadosDiretos}/2</p>
-    `;
+async function loginReal(){
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value.trim();
+  if(!email || !senha){
+    alert("Preencha e-mail e senha.");
+    return;
+  }
+  try{
+    await signInWithEmailAndPassword(auth, email, senha);
+    const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "", 6, 200);
+    if(!existeDocUsuario){
+      await signOut(auth);
+      alert("Conta sem registro no Firestore. Tente cadastrar novamente pelo convite.");
+      return;
+    }
+    window.fecharLogin();
+    window.location.href = "dashboard.html";
   }catch(error){
-    console.error("ERRO DASHBOARD:", error);
-
-    if(info){
-      info.innerHTML = `
-        <p><b>Erro ao carregar dashboard</b></p>
-        <p>${error.message || error}</p>
-      `;
+    const usuarioNaoEncontrado = error.code === "auth/user-not-found";
+    const senhaInvalida = error.code === "auth/wrong-password";
+    const temConvite = Boolean(ref);
+    const credencialInvalida = error.code === "auth/invalid-credential" || error.code === "auth/invalid-login-credentials";
+    if(senhaInvalida){
+      alert("Senha incorreta.");
+      return;
+    }
+    if(!temConvite && credencialInvalida && !usuarioNaoEncontrado){
+      alert("Credenciais inválidas. Verifique e-mail e senha.");
+      return;
+    }
+    if(!temConvite && !usuarioNaoEncontrado){
+      alert("Erro no login: " + (error.code || error.message || error));
+      return;
+    }
+    const criado = temConvite ? await criarContaPorConvite(email, senha, ref) : await criarPrimeiroUsuario(email, senha);
+    if(criado){
+      const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "");
+      if(!existeDocUsuario){
+        await signOut(auth);
+        alert("Cadastro incompleto no Firestore. Refaça o cadastro pelo convite.");
+        return;
+      }
+      window.fecharLogin();
+      window.location.href = "dashboard.html";
     }
   }
+}
+
+window.login = loginReal;
+
+onAuthStateChanged(auth, async (user) => {
+  if(bloqueiaRedirectAuth) return;
+  if(!user) return;
+  const existeDocUsuario = await esperarDocumentoUsuario(user.uid, 4, 150);
+  if(!existeDocUsuario){
+    try{
+      await signOut(auth);
+    }catch(_){}
+    return;
+  }
+  window.location.href = "dashboard.html";
 });
 </script>
+
 </body>
 </html>
