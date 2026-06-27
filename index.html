@@ -103,6 +103,9 @@
         <button onclick="login()">Entrar</button>
         <button onclick="fecharLogin()">Fechar</button>
       </div>
+      <div style="text-align:center; margin-top:10px;">
+        <a href="#" onclick="recuperarSenha()" style="font-size:11px; color:#003366; opacity:.6; text-decoration:none; font-family:Consolas,monospace;">Esqueci minha senha</a>
+      </div>
     </div>
   </div>
 
@@ -134,38 +137,16 @@
 
     function animar() {
       reset();
-
-      // 1 — maa
       setTimeout(() => { on("maa"); }, 500);
-
-      // 2 — mab
       setTimeout(() => { on("mab"); }, 1200);
-
-      // 3 — mba aparece na base
       setTimeout(() => { on("mba"); }, 2000);
-
-      // 4 — mba some, reaparece como ma
       setTimeout(() => { off("mba"); }, 2800);
       setTimeout(() => { on("ma"); }, 3100);
-
-      // 5 — mba reabre
       setTimeout(() => { on("mba"); }, 3900);
-
-      // 6 — mbb
       setTimeout(() => { on("mbb"); }, 4700);
-
-      // 7 — mb
       setTimeout(() => { on("mb"); }, 5500);
-
-      // 8 — m
       setTimeout(() => { on("m"); }, 6300);
-
-      // 9 — linhas
-      setTimeout(() => {
-        on("l-m-ma","l-m-mb","l-ma-maa","l-ma-mab","l-mb-mba","l-mb-mbb");
-      }, 7000);
-
-      // 10 — título
+      setTimeout(() => { on("l-m-ma","l-m-mb","l-ma-maa","l-ma-mab","l-mb-mba","l-mb-mbb"); }, 7000);
       setTimeout(() => { digitar(); }, 7500);
     }
 
@@ -197,6 +178,7 @@
     import { auth } from "./firebase.js";
     import {
       signInWithEmailAndPassword,
+      sendPasswordResetEmail,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -212,6 +194,20 @@
         window.location.href = "dashboard.html";
       } catch(e) {
         erro.textContent = "E-mail ou senha incorretos.";
+      }
+    };
+
+    window.recuperarSenha = async function() {
+      const email = document.getElementById("email").value.trim();
+      const erro  = document.getElementById("modalError");
+      if (!email) { erro.textContent = "Digite seu e-mail para recuperar a senha."; return; }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        erro.style.color = "#003366";
+        erro.textContent = "E-mail de recuperação enviado.";
+      } catch(e) {
+        erro.style.color = "#c0392b";
+        erro.textContent = "E-mail não encontrado.";
       }
     };
 
