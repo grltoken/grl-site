@@ -1,678 +1,224 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Matriz</title>
-<style>
-body{
-  background:#ffffff;
-  margin:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  min-height:100vh;
-  padding:20px;
-  font-family: Consolas, monospace;
-}
-
-#loginBtn{
-  position:fixed;
-  top:10px;
-  left:10px;
-}
-
-#loginBtn button{
-  padding:7px 12px;
-  background:#003366;
-  color:#fff;
-  border:none;
-  border-radius:10px;
-  font-family: Consolas, monospace;
-  cursor:pointer;
-  box-shadow:0 6px 16px rgba(0,51,102,0.18);
-  transition:opacity .2s ease, transform .06s ease;
-}
-
-#loginBtn button:hover{
-  opacity:.92;
-}
-
-#loginBtn button:active{
-  transform:translateY(1px);
-}
-
-h1{
-  color:#003366;
-  font-family: Consolas, monospace;
-  font-size:28px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  margin-bottom:40px;
-}
-
-svg{
-  width:90%;
-  max-width:420px;
-}
-
-circle{
-  fill:#003366;
-  opacity:0;
-  transform:scale(0.6);
-  transform-origin:center;
-  transform-box:fill-box;
-  transition: opacity .2s ease, transform .2s ease;
-}
-
-circle.on{
-  opacity:1;
-  transform:scale(1);
-}
-
-#loginModal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(8,18,40,0.32);
-  backdrop-filter: blur(2px);
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  box-sizing:border-box;
-}
-
-.modal-box{
-  width:100%;
-  max-width:340px;
-  background:#ffffff;
-  border:1px solid rgba(0,51,102,0.18);
-  border-radius:16px;
-  padding:18px;
-  box-sizing:border-box;
-  box-shadow:0 14px 40px rgba(0,35,70,0.14);
-}
-
-.modal-box h2{
-  margin:0 0 12px;
-  color:#002f5e;
-  font-size:15px;
-  font-weight:600;
-  letter-spacing:.2px;
-}
-
-.modal-box input{
-  width:100%;
-  border:1px solid rgba(0,51,102,0.25);
-  border-radius:10px;
-  padding:10px 12px;
-  margin-bottom:10px;
-  font-family: Consolas, monospace;
-  font-size:13px;
-  color:#003366;
-  box-sizing:border-box;
-  outline:none;
-  transition:border-color .2s, box-shadow .2s;
-}
-
-.modal-box input:focus{
-  border-color:#2a6fb3;
-  box-shadow:0 0 0 3px rgba(42,111,179,.12);
-}
-
-.modal-row{
-  display:flex;
-  gap:8px;
-  margin-top:4px;
-}
-
-.modal-row button{
-  flex:1;
-  padding:9px 10px;
-  border-radius:10px;
-  border:1px solid #003366;
-  background:#003366;
-  color:#fff;
-  font-family: Consolas, monospace;
-  font-size:12px;
-  cursor:pointer;
-  transition:transform .06s ease, opacity .2s ease;
-}
-
-.modal-row button:last-child{
-  background:#fff;
-  color:#003366;
-}
-
-.modal-row button:hover{
-  opacity:.9;
-}
-
-.modal-row button:active{
-  transform:translateY(1px);
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRL Network</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: Consolas, monospace;
+    }
+    #loginBtn { position: fixed; top: 12px; left: 12px; }
+    #loginBtn button {
+      padding: 7px 14px; background: #003366; color: #fff;
+      border: none; border-radius: 10px; font-family: Consolas, monospace;
+      font-size: 13px; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,51,102,0.18);
+      transition: opacity .2s, transform .06s;
+    }
+    #loginBtn button:hover  { opacity: .88; }
+    #loginBtn button:active { transform: translateY(1px); }
+    h1 {
+      color: #003366; font-size: 26px; letter-spacing: 4px;
+      text-transform: uppercase; margin-bottom: 44px; min-height: 36px;
+    }
+    svg { width: 90%; max-width: 420px; }
+    circle {
+      fill: #003366; opacity: 0;
+      transform: scale(0.5); transform-origin: center; transform-box: fill-box;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    circle.on { opacity: 1; transform: scale(1); }
+    line {
+      stroke: #003366; stroke-width: 1.5; opacity: 0;
+      transition: opacity .6s ease;
+    }
+    line.on { opacity: 0.30; }
+    #loginModal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(8,18,40,0.30); backdrop-filter: blur(2px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-box {
+      width: 100%; max-width: 340px; background: #fff;
+      border: 1px solid rgba(0,51,102,0.15); border-radius: 16px;
+      padding: 22px 18px; box-shadow: 0 14px 40px rgba(0,35,70,0.13);
+    }
+    .modal-box h2 { margin-bottom: 14px; color: #002f5e; font-size: 14px; font-weight: 600; }
+    .modal-box input {
+      width: 100%; border: 1px solid rgba(0,51,102,0.22); border-radius: 10px;
+      padding: 10px 12px; margin-bottom: 10px; font-family: Consolas, monospace;
+      font-size: 13px; color: #003366; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .modal-box input:focus { border-color: #2a6fb3; box-shadow: 0 0 0 3px rgba(42,111,179,.10); }
+    .modal-error { font-size: 12px; color: #c0392b; min-height: 16px; margin-bottom: 8px; text-align: center; }
+    .modal-row { display: flex; gap: 8px; }
+    .modal-row button {
+      flex: 1; padding: 9px; border-radius: 10px;
+      border: 1px solid #003366; background: #003366; color: #fff;
+      font-family: Consolas, monospace; font-size: 12px;
+      cursor: pointer; transition: opacity .2s, transform .06s;
+    }
+    .modal-row button:last-child { background: #fff; color: #003366; }
+    .modal-row button:hover  { opacity: .88; }
+    .modal-row button:active { transform: translateY(1px); }
+  </style>
 </head>
 <body>
-<div id="loginBtn">
-  <button id="loginButton" onclick="abrirLogin()">Login</button>
-</div>
 
-<h1 id="title"></h1>
+  <div id="loginBtn"><button onclick="abrirLogin()">Login</button></div>
+  <h1 id="title"></h1>
 
-<svg viewBox="0 0 480 460">
-  <circle id="maa" cx="60" cy="360" r="6"/>
-  <circle id="mab" cx="180" cy="360" r="6"/>
-  <circle id="mba" cx="300" cy="360" r="6"/>
-  <circle id="mbb" cx="420" cy="360" r="6"/>
-  <circle id="ma" cx="120" cy="200" r="7"/>
-  <circle id="mb" cx="360" cy="200" r="7"/>
-  <circle id="m" cx="240" cy="60" r="8"/>
-</svg>
+  <svg viewBox="0 0 480 400">
+    <line id="l-m-ma"   x1="240" y1="60"  x2="120" y2="210"/>
+    <line id="l-m-mb"   x1="240" y1="60"  x2="360" y2="210"/>
+    <line id="l-ma-maa" x1="120" y1="210" x2="60"  y2="360"/>
+    <line id="l-ma-mab" x1="120" y1="210" x2="180" y2="360"/>
+    <line id="l-mb-mba" x1="360" y1="210" x2="300" y2="360"/>
+    <line id="l-mb-mbb" x1="360" y1="210" x2="420" y2="360"/>
+    <circle id="maa" cx="60"  cy="360" r="6"/>
+    <circle id="mab" cx="180" cy="360" r="6"/>
+    <circle id="mba" cx="300" cy="360" r="6"/>
+    <circle id="mbb" cx="420" cy="360" r="6"/>
+    <circle id="ma"  cx="120" cy="210" r="7"/>
+    <circle id="mb"  cx="360" cy="210" r="7"/>
+    <circle id="m"   cx="240" cy="60"  r="9"/>
+  </svg>
 
-<div id="loginModal">
-  <div class="modal-box">
-    <h2>Entrar na Matriz</h2>
-    <input id="email" type="email" placeholder="Email">
-    <input id="senha" type="password" placeholder="Senha">
-    <div class="modal-row">
-      <button onclick="login()">Entrar</button>
-      <button onclick="fecharLogin()">Fechar</button>
+  <div id="loginModal">
+    <div class="modal-box">
+      <h2>Entrar na Matriz</h2>
+      <input id="email" type="email"    placeholder="E-mail">
+      <input id="senha" type="password" placeholder="Senha">
+      <div class="modal-error" id="modalError"></div>
+      <div class="modal-row">
+        <button onclick="login()">Entrar</button>
+        <button onclick="fecharLogin()">Fechar</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-const title = document.getElementById("title");
-const text = "MASTERMINDs";
+  <script>
+    const titleEl = document.getElementById("title");
+    const TEXTO   = "MASTERMINDs";
 
-function show(id){
-  document.getElementById(id)?.classList.add("on");
-}
+    function on(...ids)  { ids.forEach(id => document.getElementById(id)?.classList.add("on")); }
+    function off(...ids) { ids.forEach(id => document.getElementById(id)?.classList.remove("on")); }
 
-function hide(id){
-  document.getElementById(id)?.classList.remove("on");
-}
-
-function reset(){
-  ["maa", "mab", "mba", "mbb", "ma", "mb", "m"].forEach(hide);
-}
-
-function typeText(){
-  title.innerHTML = "";
-  let i = 0;
-  const interval = setInterval(()=>{
-    title.innerHTML = text.substring(0, i + 1) + "|";
-    i++;
-    if(i >= text.length) clearInterval(interval);
-  }, 80);
-}
-
-function run(){
-  reset();
-  title.innerHTML = "";
-  setTimeout(()=>{show("maa");}, 400);
-  setTimeout(()=>{hide("maa");}, 1100);
-  setTimeout(()=>{show("ma");}, 1300);
-  setTimeout(()=>{show("maa"); show("mab");}, 2000);
-  setTimeout(()=>{hide("ma"); hide("maa"); hide("mab");}, 2600);
-  setTimeout(()=>{show("m");}, 2800);
-  setTimeout(()=>{show("ma"); show("mb");}, 3600);
-  setTimeout(()=>{show("maa"); show("mab"); show("mba"); show("mbb");}, 4500);
-  setTimeout(()=>{reset();}, 5800);
-  setTimeout(()=>{typeText();}, 6500);
-}
-
-run();
-setInterval(run, 9000);
-</script>
-
-<script>
-function abrirLogin(){
-  document.getElementById("loginModal").style.display = "flex";
-}
-
-function fecharLogin(){
-  document.getElementById("loginModal").style.display = "none";
-}
-
-window.login = function(){
-  alert("Carregando login... se persistir, recarregue a página.");
-};
-
-window.abrirLogin = abrirLogin;
-window.fecharLogin = fecharLogin;
-
-window.addEventListener("click", function(event){
-  const modal = document.getElementById("loginModal");
-  if(event.target === modal){
-    fecharLogin();
-  }
-});
-</script>
-
-<script type="module">
-import { auth, db } from "./firebase.js";
-import {
-  createUserWithEmailAndPassword,
-  deleteUser,
-  onAuthStateChanged,
-  signOut,
-  signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-  collection,
-  doc,
-  getCountFromServer,
-  getDoc,
-  runTransaction,
-  serverTimestamp,
-  arrayUnion
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const SLOT_ORDER = ["maa", "mab", "mba", "mbb"];
-const BASE_SLOTS = ["maa", "mab", "mba", "mbb"];
-const params = new URL(window.location.href).searchParams;
-const ref = (params.get("ref") || "").trim();
-const bootstrapRef = doc(db, "sistema", "bootstrap");
-let bloqueiaRedirectAuth = false;
-
-function idDocumentoValido(id){
-  return typeof id === "string" && id.trim().length > 0 && !id.includes("/");
-}
-
-function extrairUid(valor){
-  if(idDocumentoValido(valor)) return valor.trim();
-  if(valor && typeof valor === "object"){
-    if(idDocumentoValido(valor.uid)) return valor.uid.trim();
-    if(idDocumentoValido(valor.userUid)) return valor.userUid.trim();
-  }
-  return null;
-}
-
-function normalizarSlots(slots){
-  const origem = slots || {};
-  return {
-    m: origem.m ?? null,
-    ma: origem.ma ?? null,
-    mb: origem.mb ?? null,
-    maa: origem.maa ?? null,
-    mab: origem.mab ?? null,
-    mba: origem.mba ?? null,
-    mbb: origem.mbb ?? null
-  };
-}
-
-function contarBasePreenchida(slots){
-  return BASE_SLOTS.filter((slot) => Boolean(slots?.[slot])).length;
-}
-
-function compactarBase(slots){
-  const atualizados = normalizarSlots(slots);
-  const ocupantes = BASE_SLOTS
-    .map((slot) => atualizados[slot])
-    .filter(Boolean);
-  BASE_SLOTS.forEach((slot, index) => {
-    atualizados[slot] = ocupantes[index] || null;
-  });
-  return atualizados;
-}
-
-function extrairMudancasDeSlot(slotsAntigos, slotsNovos){
-  const mudancas = [];
-  const todosSlots = ["m", "ma", "mb", "maa", "mab", "mba", "mbb"];
-  for(const slot of todosSlots){
-    const uidNovo = extrairUid(slotsNovos[slot]);
-    if(!uidNovo) continue;
-    const uidAntigoNoMesmoSlot = extrairUid(slotsAntigos[slot]);
-    if(uidAntigoNoMesmoSlot !== uidNovo){
-      mudancas.push({ uid: uidNovo, novoSlot: slot });
+    function reset() {
+      off("m","ma","mb","maa","mab","mba","mbb");
+      off("l-m-ma","l-m-mb","l-ma-maa","l-ma-mab","l-mb-mba","l-mb-mbb");
+      titleEl.innerHTML = "";
     }
-  }
-  return mudancas;
-}
 
-function posicionarConvidadoNaBase(slots, novoUid){
-  const atualizados = normalizarSlots(slots);
-  if(atualizados.mbb){
-    return { slots: atualizados, slot: null };
-  }
-  atualizados.mbb = atualizados.mba || null;
-  atualizados.mba = atualizados.mab || null;
-  atualizados.mab = atualizados.maa || null;
-  atualizados.maa = novoUid;
-  return { slots: atualizados, slot: "maa" };
-}
-
-function promoverDonoQualificado(slots, ownerUid){
-  const atualizados = normalizarSlots(slots);
-  const basePreenchida = contarBasePreenchida(atualizados);
-  if(basePreenchida < 2){
-    return { slots: atualizados, slotPromovido: null };
-  }
-  const slotBaseDono = BASE_SLOTS.find((slot) => atualizados[slot] === ownerUid);
-  if(!slotBaseDono){
-    return { slots: atualizados, slotPromovido: null };
-  }
-  if(!atualizados.ma){
-    atualizados.ma = ownerUid;
-    atualizados[slotBaseDono] = null;
-    const compactados = compactarBase(atualizados);
-    return { slots: compactados, slotPromovido: "ma" };
-  }
-  if(atualizados.ma === ownerUid){
-    return { slots: atualizados, slotPromovido: "ma" };
-  }
-  if(!atualizados.mb){
-    atualizados.mb = ownerUid;
-    atualizados[slotBaseDono] = null;
-    const compactados = compactarBase(atualizados);
-    return { slots: compactados, slotPromovido: "mb" };
-  }
-  if(atualizados.mb === ownerUid){
-    return { slots: atualizados, slotPromovido: "mb" };
-  }
-  return { slots: atualizados, slotPromovido: null };
-}
-
-async function esperarDocumentoUsuario(uid, tentativas = 10, intervaloMs = 250){
-  const userRef = doc(db, "usuarios", uid);
-  for(let i = 0; i < tentativas; i++){
-    const userSnap = await getDoc(userRef);
-    if(userSnap.exists()) return true;
-    await new Promise((resolve) => setTimeout(resolve, intervaloMs));
-  }
-  return false;
-}
-
-async function criarContaPorConvite(email, senha, refUid){
-  if(!refUid){
-    alert("Cadastro apenas por convite.");
-    return false;
-  }
-  let cred;
-  try{
-    bloqueiaRedirectAuth = true;
-    cred = await createUserWithEmailAndPassword(auth, email, senha);
-  }catch(e){
-    bloqueiaRedirectAuth = false;
-    if(e.code === "auth/email-already-in-use"){
-      alert("Este e-mail já está em uso.");
-      return false;
-    }
-    if(e.code === "auth/weak-password"){
-      alert("Senha fraca. Use pelo menos 6 caracteres.");
-      return false;
-    }
-    alert("Erro ao criar conta: " + (e.code || e.message || e));
-    return false;
-  }
-  const novoUid = cred.user.uid;
-  const novoUserRef = doc(db, "usuarios", novoUid);
-  const refUserRef = doc(db, "usuarios", refUid);
-  try{
-    await runTransaction(db, async (transaction) => {
-      const refSnap = await transaction.get(refUserRef);
-      if(!refSnap.exists()) throw new Error("convite-invalido");
-      const refData = refSnap.data();
-      const matrizId = refUid;
-      if(!idDocumentoValido(matrizId)){
-        throw new Error("ref-sem-matriz");
-      }
-      const matrizRef = doc(db, "matrizes", matrizId);
-      const matrizSnap = await transaction.get(matrizRef);
-      if(!matrizSnap.exists()) throw new Error("matriz-inexistente");
-      const matrizData = matrizSnap.data();
-      const { slots: slotsPosicionados, slot } = posicionarConvidadoNaBase(
-        normalizarSlots(matrizData.slots),
-        novoUid
-      );
-      if(!slot){
-        console.log("Sem vaga na matriz. Seguindo sem posicionar.");
-      }
-      const convidadosAtuais = refData.convidadosCount || 0;
-      const novoConvidadosCount = convidadosAtuais + 1;
-      let slots = slotsPosicionados;
-      let slotPromovido = null;
-      if(novoConvidadosCount >= 2){
-        const resultado = promoverDonoQualificado(slotsPosicionados, refUid);
-        slots = resultado.slots;
-        slotPromovido = resultado.slotPromovido;
-      }
-      const statusRef = novoConvidadosCount >= 2 ? "qualified" : "open";
-      const matrizesAscendentes = [{ ref: matrizRef, data: matrizData }];
-      let parentUid = matrizData.parentMatrixOwnerUid;
-      while(parentUid){
-        const parentRef = doc(db, "matrizes", parentUid);
-        const parentSnap = await transaction.get(parentRef);
-        if(!parentSnap.exists()) break;
-        const parentData = parentSnap.data();
-        matrizesAscendentes.push({ ref: parentRef, data: parentData });
-        parentUid = parentData.parentMatrixOwnerUid;
-      }
-      transaction.set(novoUserRef, {
-        uid: novoUid,
-        email,
-        nome: "",
-        parent: refUid,
-        matrizId: novoUid,
-        slotAtual: "maa",
-        status: "open",
-        createdAt: serverTimestamp()
-      });
-      transaction.update(refUserRef, {
-        status: statusRef,
-        slotAtual: slotPromovido || refData.slotAtual || "maa",
-        convidadosCount: novoConvidadosCount,
-        convidadosDiretos: arrayUnion(novoUid)
-      });
-      transaction.set(doc(db, "matrizes", novoUid), {
-        ownerUid: novoUid,
-        parentMatrixOwnerUid: extrairUid(matrizData.ownerUid) || refUid,
-        slots: { m: null, ma: null, mb: null, maa: novoUid, mab: null, mba: null, mbb: null },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      const mudancasSlot = [];
-      for(const item of matrizesAscendentes){
-        let novosSlots;
-        if(item.ref.path === matrizRef.path){
-          novosSlots = slots;
-        }else{
-          const resultadoAscendente = posicionarConvidadoNaBase(
-            normalizarSlots(item.data.slots),
-            novoUid
-          );
-          novosSlots = resultadoAscendente.slots;
+    function digitar() {
+      titleEl.innerHTML = "";
+      let i = 0;
+      const iv = setInterval(() => {
+        titleEl.innerHTML = TEXTO.substring(0, i + 1) + "|";
+        i++;
+        if (i >= TEXTO.length) {
+          clearInterval(iv);
+          setTimeout(() => { titleEl.innerHTML = TEXTO; }, 400);
         }
-        const slotsAntigos = normalizarSlots(item.data.slots);
-        const mudancasDaVez = extrairMudancasDeSlot(slotsAntigos, novosSlots);
-        for(const mudanca of mudancasDaVez){
-          const idx = mudancasSlot.findIndex((x) => x.uid === mudanca.uid);
-          if(idx >= 0){
-            mudancasSlot[idx] = mudanca;
-          }else{
-            mudancasSlot.push(mudanca);
-          }
-        }
-        transaction.update(item.ref, {
-          slots: novosSlots,
-          updatedAt: serverTimestamp()
-        });
-      }
-      for(const { uid, novoSlot } of mudancasSlot){
-        const usuarioRef = doc(db, "usuarios", uid);
-        transaction.update(usuarioRef, {
-          slotAtual: novoSlot,
-          updatedAt: serverTimestamp()
-        });
+      }, 80);
+    }
+
+    function animar() {
+      reset();
+
+      // 1 — maa
+      setTimeout(() => { on("maa"); }, 500);
+
+      // 2 — mab
+      setTimeout(() => { on("mab"); }, 1200);
+
+      // 3 — mba aparece na base
+      setTimeout(() => { on("mba"); }, 2000);
+
+      // 4 — mba some, reaparece como ma
+      setTimeout(() => { off("mba"); }, 2800);
+      setTimeout(() => { on("ma"); }, 3100);
+
+      // 5 — mba reabre
+      setTimeout(() => { on("mba"); }, 3900);
+
+      // 6 — mbb
+      setTimeout(() => { on("mbb"); }, 4700);
+
+      // 7 — mb
+      setTimeout(() => { on("mb"); }, 5500);
+
+      // 8 — m
+      setTimeout(() => { on("m"); }, 6300);
+
+      // 9 — linhas
+      setTimeout(() => {
+        on("l-m-ma","l-m-mb","l-ma-maa","l-ma-mab","l-mb-mba","l-mb-mbb");
+      }, 7000);
+
+      // 10 — título
+      setTimeout(() => { digitar(); }, 7500);
+    }
+
+    animar();
+    setInterval(animar, 12000);
+  </script>
+
+  <script>
+    function abrirLogin() {
+      document.getElementById("loginModal").style.display = "flex";
+      document.getElementById("modalError").textContent = "";
+    }
+    function fecharLogin() {
+      document.getElementById("loginModal").style.display = "none";
+    }
+    window.addEventListener("click", e => {
+      if (e.target === document.getElementById("loginModal")) fecharLogin();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter" && document.getElementById("loginModal").style.display === "flex") {
+        window.login && window.login();
       }
     });
-    bloqueiaRedirectAuth = false;
-    return true;
-  }catch(e){
-    const erroFirestore = e?.code || e?.message || String(e);
-    if(auth.currentUser && auth.currentUser.uid === novoUid){
-      try{
-        await deleteUser(auth.currentUser);
-      }catch(_){}
-    }
-    alert(
-      e.message === "matriz-cheia" ? "Matriz do convite está cheia." :
-      e.message === "convite-invalido" ? "Convite inválido." :
-      e.message === "ref-sem-matriz" || e.message === "matriz-inexistente" ? "Convite com dados incompletos." :
-      "Erro ao posicionar na matriz (" + erroFirestore + ")."
-    );
-    try{
-      await signOut(auth);
-    }catch(_){}
-    bloqueiaRedirectAuth = false;
-    return false;
-  }
-}
+    window.abrirLogin  = abrirLogin;
+    window.fecharLogin = fecharLogin;
+  </script>
 
-async function criarPrimeiroUsuario(email, senha){
-  try{
-    const usuariosCount = await getCountFromServer(collection(db, "usuarios"));
-    if(usuariosCount.data().count > 0){
-      alert("Cadastro apenas por convite.");
-      return false;
-    }
-  }catch(_){
-    alert("Cadastro apenas por convite.");
-    return false;
-  }
-  let cred;
-  try{
-    bloqueiaRedirectAuth = true;
-    cred = await createUserWithEmailAndPassword(auth, email, senha);
-  }catch(e){
-    bloqueiaRedirectAuth = false;
-    if(e.code === "auth/email-already-in-use"){
-      alert("Este e-mail já está em uso.");
-      return false;
-    }
-    if(e.code === "auth/weak-password"){
-      alert("Senha fraca. Use pelo menos 6 caracteres.");
-      return false;
-    }
-    alert("Erro ao criar conta: " + (e.code || e.message || e));
-    return false;
-  }
-  const novoUid = cred.user.uid;
-  const novoUserRef = doc(db, "usuarios", novoUid);
-  const novaMatrizRef = doc(db, "matrizes", novoUid);
-  try{
-    await runTransaction(db, async (transaction) => {
-      const bootstrapSnap = await transaction.get(bootstrapRef);
-      if(bootstrapSnap.exists() && bootstrapSnap.data().inicializado){
-        throw new Error("bootstrap-ja-realizado");
+  <script type="module">
+    import { auth } from "./firebase.js";
+    import {
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    window.login = async function() {
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+      const erro  = document.getElementById("modalError");
+      erro.textContent = "";
+      if (!email || !senha) { erro.textContent = "Preencha e-mail e senha."; return; }
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+        fecharLogin();
+        window.location.href = "dashboard.html";
+      } catch(e) {
+        erro.textContent = "E-mail ou senha incorretos.";
       }
-      transaction.set(novoUserRef, {
-        uid: novoUid,
-        email,
-        nome: "",
-        parent: null,
-        matrizId: novoUid,
-        slotAtual: "m",
-        status: "open",
-        role: "owner",
-        createdAt: serverTimestamp()
-      });
-      transaction.set(novaMatrizRef, {
-        ownerUid: novoUid,
-        parentMatrixOwnerUid: null,
-        slots: { m: novoUid, ma: null, mb: null, maa: null, mab: null, mba: null, mbb: null },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      transaction.set(bootstrapRef, {
-        inicializado: true,
-        rootUid: novoUid,
-        createdAt: serverTimestamp()
-      });
+    };
+
+    onAuthStateChanged(auth, user => {
+      if (user) window.location.href = "dashboard.html";
     });
-    bloqueiaRedirectAuth = false;
-    return true;
-  }catch(e){
-    if(auth.currentUser && auth.currentUser.uid === novoUid){
-      try{
-        await deleteUser(auth.currentUser);
-      }catch(_){}
-    }
-    alert(
-      e.message === "bootstrap-ja-realizado" ? "Cadastro inicial já foi realizado. Use um convite." :
-      "Erro ao criar usuário inicial."
-    );
-    bloqueiaRedirectAuth = false;
-    return false;
-  }
-}
-
-async function loginReal(){
-  const email = document.getElementById("email").value.trim();
-  const senha = document.getElementById("senha").value.trim();
-  if(!email || !senha){
-    alert("Preencha e-mail e senha.");
-    return;
-  }
-  try{
-    await signInWithEmailAndPassword(auth, email, senha);
-    const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "", 6, 200);
-    if(!existeDocUsuario){
-      await signOut(auth);
-      alert("Conta sem registro no Firestore. Tente cadastrar novamente pelo convite.");
-      return;
-    }
-    window.fecharLogin();
-    window.location.href = "dashboard.html";
-  }catch(error){
-    const usuarioNaoEncontrado = error.code === "auth/user-not-found";
-    const senhaInvalida = error.code === "auth/wrong-password";
-    const temConvite = Boolean(ref);
-    const credencialInvalida = error.code === "auth/invalid-credential" || error.code === "auth/invalid-login-credentials";
-    if(senhaInvalida){
-      alert("Senha incorreta.");
-      return;
-    }
-    if(!temConvite && credencialInvalida && !usuarioNaoEncontrado){
-      alert("Credenciais inválidas. Verifique e-mail e senha.");
-      return;
-    }
-    if(!temConvite && !usuarioNaoEncontrado){
-      alert("Erro no login: " + (error.code || error.message || error));
-      return;
-    }
-    const criado = temConvite ? await criarContaPorConvite(email, senha, ref) : await criarPrimeiroUsuario(email, senha);
-    if(criado){
-      const existeDocUsuario = await esperarDocumentoUsuario(auth.currentUser?.uid || "");
-      if(!existeDocUsuario){
-        await signOut(auth);
-        alert("Cadastro incompleto no Firestore. Refaça o cadastro pelo convite.");
-        return;
-      }
-      window.fecharLogin();
-      window.location.href = "dashboard.html";
-    }
-  }
-}
-
-window.login = loginReal;
-
-onAuthStateChanged(auth, async (user) => {
-  if(bloqueiaRedirectAuth) return;
-  if(!user) return;
-  const existeDocUsuario = await esperarDocumentoUsuario(user.uid, 4, 150);
-  if(!existeDocUsuario){
-    try{
-      await signOut(auth);
-    }catch(_){}
-    return;
-  }
-  window.location.href = "dashboard.html";
-});
-</script>
+  </script>
 
 </body>
 </html>
